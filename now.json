@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "alias": ["critresult.com"],
+  "alias": ["api.critresult.com"],
   "env": {
     "DB_URI": "@db-uri"
   },
