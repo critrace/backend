@@ -1,6 +1,9 @@
 {
   "version": 2,
   "alias": ["critresult.com"],
+  "env": {
+    "DB_URI": "@db-uri"
+  },
   "builds": [{ "src": "index.js", "use": "@now/node" }],
   "routes": [
     {
