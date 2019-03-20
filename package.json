@@ -1,0 +1,22 @@
+{
+  "name": "@critresult/backend",
+  "version": "0.0.1",
+  "description": "Backend logic for criterium registration and scoring",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/critresult/backend.git"
+  },
+  "author": "Chance Hudson",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/critresult/backend/issues"
+  },
+  "homepage": "https://github.com/critresult/backend#readme",
+  "dependencies": {
+    "now": "^14.2.0"
+  }
+}
