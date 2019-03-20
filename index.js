@@ -3,6 +3,7 @@ require('./models/entry');
 require('./models/event');
 require('./models/race');
 require('./models/rider');
+require('./models/promoter');
 const express = require('express');
 const asyncHandler = require('express-async-handler');
 const app = express();
@@ -23,5 +24,6 @@ app.use(
 );
 
 require('./routes/event')(app);
+require('./routes/promoter')(app);
 
 module.exports = app;
