@@ -2,7 +2,8 @@
   "version": 2,
   "alias": ["api.critresult.com"],
   "env": {
-    "DB_URI": "@db-uri"
+    "DB_URI": "@db-uri",
+    "WEB_TOKEN_SECRET": "@web-token-secret"
   },
   "builds": [{ "src": "index.js", "use": "@now/node" }],
   "routes": [
