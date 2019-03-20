@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const EntrySchema = new Schema(
+const EntrySchema = new mongoose.Schema(
   {
     riderId: {
       type: mongoose.Schema.Types.ObjectId,

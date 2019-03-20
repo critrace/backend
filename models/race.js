@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const RaceSchema = new Schema(
+const RaceSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -12,6 +12,11 @@ const RaceSchema = new Schema(
     },
     actualStart: {
       type: Date,
+      required: true,
+    },
+    eventId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Event',
       required: true,
     },
   },
