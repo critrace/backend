@@ -18,5 +18,8 @@
   "homepage": "https://github.com/critresult/backend#readme",
   "dependencies": {
     "now": "^14.2.0"
+  },
+  "devDependencies": {
+    "dotenv": "^7.0.0"
   }
 }

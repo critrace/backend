@@ -3,3 +3,4 @@ node_modules
 now-secrets.json
 *.tmp
 *.swp
+.env
