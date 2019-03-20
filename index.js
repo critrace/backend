@@ -1,4 +1,8 @@
 const mongoose = require('mongoose');
+require('./models/entry');
+require('./models/event');
+require('./models/race');
+require('./models/rider');
 const express = require('express');
 const asyncHandler = require('express-async-handler');
 const app = express();
@@ -18,6 +22,6 @@ app.use(
   })
 );
 
-app.use((req, res) => res.end('Hello World'));
+require('./routes/event')(app);
 
 module.exports = app;
