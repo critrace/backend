@@ -12,6 +12,10 @@ const EntrySchema = new Schema(
       ref: 'Race',
       required: true,
     },
+    bib: {
+      type: Number,
+      required: true,
+    },
   },
   {
     collection: 'entries'

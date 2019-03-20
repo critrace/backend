@@ -30,6 +30,10 @@ const RiderSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    team: {
+      type: String,
+      required: false,
+    },
   },
   {
     collection: 'riders',
