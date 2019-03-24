@@ -10,11 +10,6 @@ const app = express();
 
 app.use(express.json());
 
-/**
- * Establish a connection to the mongo database, then continue the request
- **/
-app.use(mongoConnect);
-
 const mongoConnect = _async(async (req, res, next) => {
   await mongoose.connect(process.env.DB_URI, {
     connectTimeoutMS: 5000,
@@ -22,6 +17,11 @@ const mongoConnect = _async(async (req, res, next) => {
   });
   next();
 });
+
+/**
+ * Establish a connection to the mongo database, then continue the request
+ **/
+app.use(mongoConnect);
 
 require('./routes/event')(app);
 require('./routes/promoter')(app);
