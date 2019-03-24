@@ -1,13 +1,13 @@
 const mongoose = require('mongoose');
 const Promoter = mongoose.model('Promoter');
-const asyncHandler = require('express-async-handler');
+const _async = require('async-express');
 
 module.exports = (app) => {
-  app.post('/promoter', asyncHandler(create));
-  app.post('/promoter/login', asyncHandler(login));
+  app.post('/promoter', create);
+  app.post('/promoter/login', login);
 };
 
-async function create(req, res) {
+const create = _async(async (req, res) => {
   if (!req.body.password || req.body.password.length < 6) {
     res.status(400);
     res.send('Please make sure your password is at least 6 characters.');
@@ -17,9 +17,9 @@ async function create(req, res) {
   const passwordHash = await bcrypt.hash(req.body.password, salt);
   const created = await Promoter.create({ ...req.body, passwordHash });
   res.json(created);
-}
+});
 
-async function login(req, res) {
+const login = _async(async (req, res) => {
   const promoter = await Promoter.findOne({
     email: req.body.email
   }).lean().exec();
@@ -36,4 +36,4 @@ async function login(req, res) {
   }
   const token = jwt.sign({ ...promoter, passwordHash: '' }, process.env.WEB_TOKEN_SECRET);
   res.json({ token });
-}
+});
