@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Promoter = mongoose.model('Promoter');
 const _async = require('async-express');
+const emailValidator = require('email-validator');
 
 module.exports = (app) => {
   app.post('/promoter', create);
@@ -11,6 +12,11 @@ const create = _async(async (req, res) => {
   if (!req.body.password || req.body.password.length < 6) {
     res.status(400);
     res.send('Please make sure your password is at least 6 characters.');
+    return;
+  }
+  if (!emailValidator.validate(req.body.email)) {
+    res.status(400);
+    res.send('Invalid email supplied.');
     return;
   }
   const salt = await bcrypt.genSalt(10);
