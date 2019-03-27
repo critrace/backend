@@ -7,7 +7,21 @@ const bcrypt = require('bcrypt');
 module.exports = (app) => {
   app.post('/promoter', create);
   app.post('/promoter/login', login);
+  app.get('/promoter', load);
 };
+
+const load = _async(async (req, res) => {
+  const promoter = await Promoter.findOne({
+    email: req.body.email,
+    _id: req.body._id,
+  });
+  if (!promoter) {
+    res.status(404).json({
+      message: 'The model could not be found.'
+    });
+  }
+  res.json(promoter);
+});
 
 const create = _async(async (req, res) => {
   if (!req.body.password || req.body.password.length < 6) {
