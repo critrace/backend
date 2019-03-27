@@ -3,22 +3,24 @@ const Promoter = mongoose.model('Promoter');
 const _async = require('async-express');
 const emailValidator = require('email-validator');
 const bcrypt = require('bcrypt');
+const auth = require('../middleware/auth');
+const jwt = require('jsonwebtoken');
 
 module.exports = (app) => {
   app.post('/promoter', create);
   app.post('/promoter/login', login);
-  app.get('/promoter', load);
+  app.get('/promoter', auth, load);
 };
 
 const load = _async(async (req, res) => {
   const promoter = await Promoter.findOne({
-    email: req.body.email,
-    _id: req.body._id,
+    _id: mongoose.Types.ObjectId(req.query._id || req.promoter._id),
   });
   if (!promoter) {
     res.status(404).json({
       message: 'The model could not be found.'
     });
+    return;
   }
   res.json(promoter);
 });
