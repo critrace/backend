@@ -9,6 +9,10 @@ const _async = require('async-express');
 const app = express();
 
 app.use(express.json());
+app.use((req, res, next) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  next();
+});
 
 const mongoConnect = _async(async (req, res, next) => {
   await mongoose.connect(process.env.DB_URI, {
