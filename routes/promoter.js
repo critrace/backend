@@ -22,6 +22,15 @@ const create = _async(async (req, res) => {
     });
     return;
   }
+  const promoter = await Promoter.findOne({
+    email: req.body.email
+  }).lean().exec();
+  if (promoter) {
+    res.status(400).json({
+      message: 'This email is already registered, please login.',
+    });
+    return;
+  }
   const salt = await bcrypt.genSalt(10);
   const passwordHash = await bcrypt.hash(req.body.password, salt);
   const created = await Promoter.create({ ...req.body, passwordHash, createdAt: new Date() });
