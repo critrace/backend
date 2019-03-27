@@ -25,7 +25,8 @@ const create = _async(async (req, res) => {
   const salt = await bcrypt.genSalt(10);
   const passwordHash = await bcrypt.hash(req.body.password, salt);
   const created = await Promoter.create({ ...req.body, passwordHash, createdAt: new Date() });
-  res.json(created);
+  const token = jwt.sign({ ...promoter, passwordHash: '' }, process.env.WEB_TOKEN_SECRET);
+  res.json({ ...created, token });
 });
 
 const login = _async(async (req, res) => {
@@ -46,5 +47,5 @@ const login = _async(async (req, res) => {
     return;
   }
   const token = jwt.sign({ ...promoter, passwordHash: '' }, process.env.WEB_TOKEN_SECRET);
-  res.json({ token });
+  res.json({ ...promoter, token });
 });
