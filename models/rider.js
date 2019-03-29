@@ -85,4 +85,10 @@ RiderSchema.virtual('entries', {
   },
 });
 
+RiderSchema.virtual('bibs', {
+  ref: 'Bib',
+  localField: '_id',
+  foreignField: 'riderId',
+});
+
 mongoose.model('Rider', RiderSchema);

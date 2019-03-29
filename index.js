@@ -4,6 +4,8 @@ require('./models/event');
 require('./models/race');
 require('./models/rider');
 require('./models/promoter');
+require('./models/bib');
+require('./models/series');
 const express = require('express');
 const _async = require('async-express');
 const app = express();
@@ -34,5 +36,6 @@ require('./routes/event')(app);
 require('./routes/promoter')(app);
 require('./routes/race')(app);
 require('./routes/rider')(app);
+require('./routes/series')(app);
 
 module.exports = app;

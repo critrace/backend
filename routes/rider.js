@@ -47,7 +47,7 @@ const search = _async(async (req, res) => {
         $regex: searchRegex
       }
     }
-  ]).limit(20).lean().exec();
+  ]).populate('bibs').limit(20).lean().exec();
   res.json(riders);
 });
 

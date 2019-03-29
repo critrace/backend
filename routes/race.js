@@ -62,24 +62,28 @@ const createEntry = _async(async (req, res) => {
     });
     return;
   }
-  const existing = await Promise.all([
-    Entry.findOne({
-      riderId: mongoose.Types.ObjectId(req.body.riderId),
-      raceId: mongoose.Types.ObjectId(req.body.raceId)
-    }).lean().exec(),
-    Entry.findOne({
-      raceId: mongoose.Types.ObjectId(req.body.raceId),
-      bib: req.body.bib,
-    }),
-  ]);
-  if (existing[0]) {
+  const existing = await Entry.findOne({
+    riderId: mongoose.Types.ObjectId(req.body.riderId),
+    raceId: mongoose.Types.ObjectId(req.body.raceId)
+  }).lean().exec();
+  if (existing) {
     res.status(400).json({
       message: 'This rider is already registered for this race.',
     });
     return;
-  } else if (existing[1]) {
+  }
+  const existingBib = await Bib.findOne({
+    _id: mongoose.Types.ObjectId(req.body.bibId),
+    seriesId: mongoose.Types.ObjectId(race.event.seriesId)
+  }).lean().exec();
+  if (existingBib && existingBib.riderId.toString() !== req.body.riderId) {
     res.status(400).json({
       message: 'This bib number is already in use'
+    });
+    return;
+  } else if (!existingBib) {
+    res.status(400).json({
+      message: 'Invalid bibId supplied'
     });
     return;
   }
@@ -93,7 +97,7 @@ const removeEntry = _async(async (req, res) => {
   }).populate('event').lean().exec();
   if (race.event.promoterId.toString() !== req.promoter._id.toString()) {
     res.status(401).json({
-      message: 'You are not authorized to add entries.'
+      message: 'You are not authorized to remove entries.'
     });
     return;
   }

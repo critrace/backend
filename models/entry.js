@@ -10,8 +10,8 @@ const EntrySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       required: true,
     },
-    bib: {
-      type: Number,
+    bibId: {
+      type: mongoose.Schema.Types.ObjectId,
       required: true,
     },
   },
@@ -19,6 +19,13 @@ const EntrySchema = new mongoose.Schema(
     collection: 'entries'
   }
 );
+
+EntrySchema.virtual('bib', {
+  ref: 'Bib',
+  localField: 'bibId',
+  foreignField: '_id',
+  justOne: true,
+});
 
 EntrySchema.virtual('race', {
   ref: 'Race',

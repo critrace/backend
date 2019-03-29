@@ -14,9 +14,12 @@ const EventSchema = new mongoose.Schema(
       type: Date,
       required: false,
     },
+    seriesId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: false,
+    },
     promoterId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Promoter',
       required: true,
     },
   },
