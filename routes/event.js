@@ -15,8 +15,10 @@ const create = _async(async (req, res) => {
 });
 
 const getEvents = _async(async (req, res) => {
-  const events = await Event.find({}).lean().exec();
-  res.json(events);
+  const event = await Event.findOne({
+    _id: mongoose.Types.ObjectId(req.query._id)
+  }).lean().exec();
+  res.json(event);
 });
 
 const upcomingEvents = _async(async (req, res) => {
