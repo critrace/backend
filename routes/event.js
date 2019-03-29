@@ -1,11 +1,18 @@
 const mongoose = require('mongoose');
 const Event = mongoose.model('Event');
 const _async = require('async-express');
+const auth = require('../middleware/auth');
 
 module.exports = (app) => {
-  app.get('/events', getEvents);
-  app.get('/events/upcoming', upcomingEvents);
+  app.get('/events', auth, getEvents);
+  app.get('/events/upcoming', auth, upcomingEvents);
+  app.post('/events', auth, create);
 };
+
+const create = _async(async (req, res) => {
+  const created = await Event.create(req.body);
+  res.json(created);
+});
 
 const getEvents = _async(async (req, res) => {
   const events = await Event.find({}).lean().exec();
