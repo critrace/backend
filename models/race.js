@@ -6,13 +6,13 @@ const RaceSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    scheduledStart: {
-      type: Date,
+    scheduledStartTime: {
+      type: String,
       required: true,
     },
     actualStart: {
       type: Date,
-      required: true,
+      required: false,
     },
     flyerUrl: {
       type: String,
