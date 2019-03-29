@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Event = mongoose.model('Event');
 const Race = mongoose.model('Race');
+const Entry = mongoose.model('Entry');
 const _async = require('async-express');
 const auth = require('../middleware/auth');
 
@@ -51,9 +52,13 @@ const deleteEvent = _async(async (req, res) => {
     });
     return;
   }
+  const races = await Race.find({
+    eventId: mongoose.Types.ObjectId(req.body._id)
+  }).exec();
   await Promise.all([
     Event.deleteOne({ _id: mongoose.Types.ObjectId(req.body._id)}).exec(),
-    Race.deleteMany({ eventId: mongoose.Types.ObjectId(req.body._id) }).exec()
+    Race.deleteMany({ eventId: mongoose.Types.ObjectId(req.body._id) }).exec(),
+    ...races.map(({ _id }) => Entry.deleteMany({ raceId: _id }).exec())
   ]);
   res.status(204).end();
 });
