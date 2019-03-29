@@ -20,4 +20,15 @@ const EventSchema = new mongoose.Schema(
   }
 );
 
+EventSchema.virtual('races', {
+  ref: 'Race',
+  localField: '_id',
+  foreignField: 'eventId',
+  options: {
+    sort: {
+      startTime: -1
+    },
+  },
+});
+
 mongoose.model('Event', EventSchema);
