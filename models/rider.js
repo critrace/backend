@@ -40,4 +40,15 @@ const RiderSchema = new mongoose.Schema(
   }
 );
 
+RiderSchema.virtual('entries', {
+  ref: 'Entry',
+  localField: '_id',
+  foreignField: 'riderId',
+  options: {
+    sort: {
+      lastname: -1
+    },
+  },
+});
+
 mongoose.model('Rider', RiderSchema);

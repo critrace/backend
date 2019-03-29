@@ -33,4 +33,15 @@ const RaceSchema = new mongoose.Schema(
   }
 );
 
+RaceSchema.virtual('entries', {
+  ref: 'Entry',
+  localField: '_id',
+  foreignField: 'raceId',
+  options: {
+    sort: {
+      lastname: -1
+    },
+  },
+});
+
 mongoose.model('Race', RaceSchema);
