@@ -14,6 +14,11 @@ const EventSchema = new mongoose.Schema(
       type: Date,
       required: false,
     },
+    promoterId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Promoter',
+      required: true,
+    },
   },
   {
     collection: 'events',
