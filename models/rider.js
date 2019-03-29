@@ -12,7 +12,7 @@ const RiderSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      required: true,
+      required: false,
     },
     phone: {
       type: String,
@@ -24,7 +24,7 @@ const RiderSchema = new mongoose.Schema(
     },
     transponder: {
       type: String,
-      required: true,
+      required: false,
     },
     birthdate: {
       type: Date,

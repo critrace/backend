@@ -33,5 +33,6 @@ app.use(mongoConnect);
 require('./routes/event')(app);
 require('./routes/promoter')(app);
 require('./routes/race')(app);
+require('./routes/rider')(app);
 
 module.exports = app;
