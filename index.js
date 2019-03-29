@@ -29,5 +29,6 @@ app.use(mongoConnect);
 
 require('./routes/event')(app);
 require('./routes/promoter')(app);
+require('./routes/race')(app);
 
 module.exports = app;
