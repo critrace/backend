@@ -9,6 +9,7 @@ module.exports = (app) => {
   app.get('/races', getRaces);
   app.post('/races', auth, create);
   app.post('/races/entry', auth, createEntry);
+  app.get('/races/entries', auth, getEntries);
 };
 
 const create = _async(async (req, res) => {
@@ -23,6 +24,13 @@ const create = _async(async (req, res) => {
   }
   const created = await Race.create(req.body);
   res.json(created);
+});
+
+const getEntries = _async(async (req, res) => {
+  const entries = await Entry.find({
+    raceId: mongoose.Types.ObjectId(req.query._id)
+  }).populate('rider').populate('race').lean().exec();
+  res.json(entries);
 });
 
 const getRaces = _async(async (req, res) => {
