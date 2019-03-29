@@ -16,11 +16,20 @@ const RiderSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
-      required: true,
+      required: false,
     },
     license: {
       type: String,
       required: true,
+      unique: true,
+    },
+    licenseExpirationDate: {
+      type: Date,
+      required: false,
+    },
+    licenseStatus: {
+      type: String,
+      required: false,
     },
     transponder: {
       type: String,
@@ -28,9 +37,34 @@ const RiderSchema = new mongoose.Schema(
     },
     birthdate: {
       type: Date,
-      required: true,
+      required: false,
     },
-    team: {
+    state: {
+      type: String,
+      required: false,
+    },
+    postalCode: {
+      type: String,
+      required: false,
+    },
+    gender: {
+      type: String,
+      required: false,
+    },
+    racingAge: {
+      type: Number,
+      required: false
+    },
+    racingCategoryRoad: {
+      type: Number,
+      required: true,
+      default: 5,
+    },
+    teamId: {
+      type: Number,
+      required: false,
+    },
+    teamName: {
       type: String,
       required: false,
     },

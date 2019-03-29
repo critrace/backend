@@ -7,9 +7,15 @@ module.exports = (app) => {
   app.get('/riders', getRiders);
   app.post('/riders', auth, create);
   app.get('/riders/search', search);
+  app.put('/riders', auth, update);
 };
 
 const create = _async(async (req, res) => {
+  if (req.body.models) {
+    const created = await Rider.create(req.body.models);
+    res.json(created);
+    return;
+  }
   const created = await Rider.create(req.body);
   res.json(created);
 });
@@ -23,7 +29,11 @@ const getRiders = _async(async (req, res) => {
 
 const search = _async(async (req, res) => {
   const searchRegex = new RegExp(`^${req.query.search}`, 'i')
-  const riders = await Rider.find().or([
+  const riders = await Rider.find({
+    licenseExpirationDate: {
+      $gte: new Date()
+    }
+  }).or([
     {
       license: {
         $regex: searchRegex,
@@ -37,6 +47,14 @@ const search = _async(async (req, res) => {
         $regex: searchRegex
       }
     }
-  ]).lean().exec();
+  ]).limit(20).lean().exec();
   res.json(riders);
+});
+
+const update = _async(async (req, res) => {
+  await Rider.updateOne(
+    req.body.where,
+    req.body.changes
+  ).exec();
+  res.status(204).end();
 });
