@@ -9,7 +9,7 @@ module.exports = (app) => {
   app.get('/races', getRaces);
   app.post('/races', auth, create);
   app.post('/races/entry', auth, createEntry);
-  app.get('/races/entries', auth, getEntries);
+  app.get('/races/entries', getEntries);
   app.delete('/races/entries', auth, removeEntry);
 };
 

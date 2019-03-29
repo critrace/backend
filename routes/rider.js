@@ -6,7 +6,7 @@ const auth = require('../middleware/auth');
 module.exports = (app) => {
   app.get('/riders', getRiders);
   app.post('/riders', auth, create);
-  app.get('/riders/search', auth, search);
+  app.get('/riders/search', search);
 };
 
 const create = _async(async (req, res) => {
