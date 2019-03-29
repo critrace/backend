@@ -28,6 +28,13 @@ const EventSchema = new mongoose.Schema(
   }
 );
 
+EventSchema.virtual('series', {
+  ref: 'Series',
+  localField: 'seriesId',
+  foreignField: '_id',
+  justOne: true,
+});
+
 EventSchema.virtual('races', {
   ref: 'Race',
   localField: '_id',

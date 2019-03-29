@@ -23,7 +23,7 @@ const create = _async(async (req, res) => {
 const getEvent = _async(async (req, res) => {
   const event = await Event.findOne({
     _id: mongoose.Types.ObjectId(req.query._id)
-  }).populate('races').lean().exec();
+  }).populate('races').populate('series').lean().exec();
   res.json(event);
 });
 
@@ -32,7 +32,7 @@ const upcomingEvents = _async(async (req, res) => {
     startDate: {
       $gte: new Date()
     }
-  }).populate('races').lean().exec();
+  }).populate('races').populate('series').lean().exec();
   res.json(events);
 });
 
