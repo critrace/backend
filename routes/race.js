@@ -10,6 +10,7 @@ module.exports = (app) => {
   app.post('/races', auth, create);
   app.post('/races/entry', auth, createEntry);
   app.get('/races/entries', auth, getEntries);
+  app.delete('/races/entries', auth, removeEntry);
 };
 
 const create = _async(async (req, res) => {
@@ -84,4 +85,21 @@ const createEntry = _async(async (req, res) => {
   }
   const created = await Entry.create(req.body);
   res.json(created);
+});
+
+const removeEntry = _async(async (req, res) => {
+  const race = await Race.findOne({
+    _id: mongoose.Types.ObjectId(req.body.raceId)
+  }).populate('event').lean().exec();
+  if (race.event.promoterId.toString() !== req.promoter._id.toString()) {
+    res.status(401).json({
+      message: 'You are not authorized to add entries.'
+    });
+    return;
+  }
+  await Entry.deleteOne({
+    raceId: mongoose.Types.ObjectId(req.body.raceId),
+    riderId: mongoose.Types.ObjectId(req.body.riderId)
+  }).exec();
+  res.status(204).end();
 });
