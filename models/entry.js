@@ -4,12 +4,10 @@ const EntrySchema = new mongoose.Schema(
   {
     riderId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Rider',
       required: true,
     },
     raceId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Race',
       required: true,
     },
     bib: {
@@ -21,5 +19,19 @@ const EntrySchema = new mongoose.Schema(
     collection: 'entries'
   }
 );
+
+EntrySchema.virtual('race', {
+  ref: 'Race',
+  localField: 'raceId',
+  foreignField: '_id',
+  justOne: true,
+});
+
+EntrySchema.virtual('rider', {
+  ref: 'Rider',
+  localField: 'riderId',
+  foreignField: '_id',
+  justOne: true,
+});
 
 mongoose.model('Entry', EntrySchema);

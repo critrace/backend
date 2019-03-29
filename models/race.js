@@ -24,7 +24,6 @@ const RaceSchema = new mongoose.Schema(
     },
     eventId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Event',
       required: true,
     },
   },
@@ -32,6 +31,13 @@ const RaceSchema = new mongoose.Schema(
     collection: 'races',
   }
 );
+
+RaceSchema.virtual('event', {
+  ref: 'Event',
+  localField: 'eventId',
+  foreignField: '_id',
+  justOne: true,
+});
 
 RaceSchema.virtual('entries', {
   ref: 'Entry',
