@@ -36,6 +36,7 @@ const getEntries = _async(async (req, res) => {
   })
     .populate('rider')
     .populate('race')
+    .populate('bib')
     .lean()
     .exec()
   res.json(entries)
