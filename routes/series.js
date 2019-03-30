@@ -36,7 +36,7 @@ const getSeries = _async(async (req, res) => {
   )
 })
 
-const getOwnSeries = _async(async (react, res) => {
+const getOwnSeries = _async(async (req, res) => {
   const series = await Series.find({
     promoterId: mongoose.Types.ObjectId(req.promoter._id),
   })
