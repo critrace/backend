@@ -4,7 +4,7 @@ const BibSchema = new mongoose.Schema(
   {
     seriesId: {
       type: mongoose.Schema.Types.ObjectId,
-      required: false,
+      required: true,
     },
     riderId: {
       type: mongoose.Schema.Types.ObjectId,
