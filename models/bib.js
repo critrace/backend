@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const BibSchema = new mongoose.Schema(
   {
@@ -18,20 +18,20 @@ const BibSchema = new mongoose.Schema(
   {
     collection: 'bibs',
   }
-);
+)
 
 BibSchema.virtual('series', {
   ref: 'Series',
   localField: 'seriesId',
   foreignField: '_id',
   justOne: true,
-});
+})
 
 BibSchema.virtual('rider', {
   ref: 'Rider',
   localField: 'riderId',
   foreignField: '_id',
   justOne: true,
-});
+})
 
-mongoose.model('Bib', BibSchema);
+mongoose.model('Bib', BibSchema)

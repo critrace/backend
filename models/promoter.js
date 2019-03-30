@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const PromoterSchema = new mongoose.Schema(
   {
@@ -14,11 +14,11 @@ const PromoterSchema = new mongoose.Schema(
     createdAt: {
       type: Date,
       required: true,
-    }
+    },
   },
   {
     collection: 'promoters',
   }
-);
+)
 
-mongoose.model('Promoter', PromoterSchema);
+mongoose.model('Promoter', PromoterSchema)

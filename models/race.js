@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const RaceSchema = new mongoose.Schema(
   {
@@ -30,14 +30,14 @@ const RaceSchema = new mongoose.Schema(
   {
     collection: 'races',
   }
-);
+)
 
 RaceSchema.virtual('event', {
   ref: 'Event',
   localField: 'eventId',
   foreignField: '_id',
   justOne: true,
-});
+})
 
 RaceSchema.virtual('entries', {
   ref: 'Entry',
@@ -45,9 +45,9 @@ RaceSchema.virtual('entries', {
   foreignField: 'raceId',
   options: {
     sort: {
-      lastname: -1
+      lastname: -1,
     },
   },
-});
+})
 
-mongoose.model('Race', RaceSchema);
+mongoose.model('Race', RaceSchema)

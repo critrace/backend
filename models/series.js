@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const SeriesSchema = new mongoose.Schema(
   {
@@ -15,7 +15,7 @@ const SeriesSchema = new mongoose.Schema(
   {
     collection: 'series',
   }
-);
+)
 
 SeriesSchema.virtual('events', {
   ref: 'Event',
@@ -23,9 +23,9 @@ SeriesSchema.virtual('events', {
   foreignField: 'seriesId',
   options: {
     sort: {
-      startDate: -1
+      startDate: -1,
     },
   },
-});
+})
 
-mongoose.model('Series', SeriesSchema);
+mongoose.model('Series', SeriesSchema)

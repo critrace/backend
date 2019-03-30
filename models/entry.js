@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const EntrySchema = new mongoose.Schema(
   {
@@ -16,29 +16,29 @@ const EntrySchema = new mongoose.Schema(
     },
   },
   {
-    collection: 'entries'
+    collection: 'entries',
   }
-);
+)
 
 EntrySchema.virtual('bib', {
   ref: 'Bib',
   localField: 'bibId',
   foreignField: '_id',
   justOne: true,
-});
+})
 
 EntrySchema.virtual('race', {
   ref: 'Race',
   localField: 'raceId',
   foreignField: '_id',
   justOne: true,
-});
+})
 
 EntrySchema.virtual('rider', {
   ref: 'Rider',
   localField: 'riderId',
   foreignField: '_id',
   justOne: true,
-});
+})
 
-mongoose.model('Entry', EntrySchema);
+mongoose.model('Entry', EntrySchema)

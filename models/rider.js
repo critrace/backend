@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const RiderSchema = new mongoose.Schema(
   {
@@ -53,7 +53,7 @@ const RiderSchema = new mongoose.Schema(
     },
     racingAge: {
       type: Number,
-      required: false
+      required: false,
     },
     racingCategoryRoad: {
       type: Number,
@@ -72,7 +72,7 @@ const RiderSchema = new mongoose.Schema(
   {
     collection: 'riders',
   }
-);
+)
 
 RiderSchema.virtual('entries', {
   ref: 'Entry',
@@ -80,15 +80,15 @@ RiderSchema.virtual('entries', {
   foreignField: 'riderId',
   options: {
     sort: {
-      lastname: -1
+      lastname: -1,
     },
   },
-});
+})
 
 RiderSchema.virtual('bibs', {
   ref: 'Bib',
   localField: '_id',
   foreignField: 'riderId',
-});
+})
 
-mongoose.model('Rider', RiderSchema);
+mongoose.model('Rider', RiderSchema)

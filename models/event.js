@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const EventSchema = new mongoose.Schema(
   {
@@ -26,14 +26,14 @@ const EventSchema = new mongoose.Schema(
   {
     collection: 'events',
   }
-);
+)
 
 EventSchema.virtual('series', {
   ref: 'Series',
   localField: 'seriesId',
   foreignField: '_id',
   justOne: true,
-});
+})
 
 EventSchema.virtual('races', {
   ref: 'Race',
@@ -41,9 +41,9 @@ EventSchema.virtual('races', {
   foreignField: 'eventId',
   options: {
     sort: {
-      startTime: -1
+      startTime: -1,
     },
   },
-});
+})
 
-mongoose.model('Event', EventSchema);
+mongoose.model('Event', EventSchema)
