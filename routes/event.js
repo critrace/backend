@@ -10,6 +10,7 @@ module.exports = (app) => {
   app.get('/events/upcoming', upcomingEvents)
   app.post('/events', auth, create)
   app.delete('/events', auth, deleteEvent)
+  app.get('/events/entries', getEntries)
 }
 
 const create = _async(async (req, res) => {
@@ -71,4 +72,16 @@ const deleteEvent = _async(async (req, res) => {
     ...races.map(({ _id }) => Entry.deleteMany({ raceId: _id }).exec()),
   ])
   res.status(204).end()
+})
+
+const getEntries = _async(async (req, res) => {
+  const entries = await Entry.find({
+    eventId: mongoose.Types.ObjectId(req.query._id),
+  })
+    .populate('rider')
+    .populate('race')
+    .populate('bib')
+    .lean()
+    .exec()
+  res.json(entries)
 })
