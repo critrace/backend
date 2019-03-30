@@ -26,6 +26,9 @@ const RaceSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       required: true,
     },
+    seriesId: {
+      type: mongoose.Schema.Types.ObjectId,
+    },
   },
   {
     collection: 'races',

@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const Race = mongoose.model('Race')
 const Event = mongoose.model('Event')
 const Entry = mongoose.model('Entry')
+const Bib = mongoose.model('Bib')
 const _async = require('async-express')
 const auth = require('../middleware/auth')
 
@@ -25,7 +26,7 @@ const create = _async(async (req, res) => {
     })
     return
   }
-  const created = await Race.create(req.body)
+  const created = await Race.create({ ...req.body, seriesId: event.seriesId })
   res.json(created)
 })
 
@@ -96,7 +97,7 @@ const createEntry = _async(async (req, res) => {
     .lean()
     .exec()
   if (existingBib && existingBib.riderId.toString() !== req.body.riderId) {
-    res.status(400).json({
+    res.status(401).json({
       message: 'This bib number is already in use',
     })
     return
@@ -106,7 +107,11 @@ const createEntry = _async(async (req, res) => {
     })
     return
   }
-  const created = await Entry.create(req.body)
+  const created = await Entry.create({
+    ...req.body,
+    eventId: race.eventId,
+    seriesId: race.seriesId,
+  })
   res.json(created)
 })
 
