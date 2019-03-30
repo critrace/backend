@@ -20,8 +20,10 @@ const RiderSchema = new mongoose.Schema(
     },
     license: {
       type: String,
-      required: true,
+      required: false,
+      index: true,
       unique: true,
+      sparse: true,
     },
     licenseExpirationDate: {
       type: Date,
