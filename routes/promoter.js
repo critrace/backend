@@ -7,7 +7,7 @@ const auth = require('../middleware/auth')
 const jwt = require('jsonwebtoken')
 
 module.exports = (app) => {
-  app.post('/promoters', create)
+  app.post('/promoters', auth, create)
   app.post('/promoters/login', login)
   app.get('/promoters', auth, load)
 }
