@@ -5,7 +5,7 @@ const _async = require('async-express')
 const auth = require('../middleware/auth')
 
 module.exports = (app) => {
-  app.get('/bibs', auth, getBibs)
+  app.get('/bibs', getBibs)
   app.post('/bibs', auth, create)
   app.delete('/bibs', auth, deleteBib)
 }
