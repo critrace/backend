@@ -4,7 +4,7 @@ const _async = require('async-express');
 const auth = require('../middleware/auth');
 
 module.exports = (app) => {
-  app.get('/series', auth, getSeries);
+  app.get('/series', getSeries);
   app.post('/series', auth, create);
   app.get('/series/authenticated', auth, getOwnSeries);
 };
