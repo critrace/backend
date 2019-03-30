@@ -12,6 +12,7 @@ module.exports = (app) => {
   app.post('/races/entry', auth, createEntry)
   app.get('/races/entries', getEntries)
   app.delete('/races/entries', auth, removeEntry)
+  app.delete('/races', auth, _delete)
 }
 
 const create = _async(async (req, res) => {
@@ -28,6 +29,34 @@ const create = _async(async (req, res) => {
   }
   const created = await Race.create({ ...req.body, seriesId: event.seriesId })
   res.json(created)
+})
+
+const _delete = _async(async (req, res) => {
+  const race = await Race.findOne({
+    _id: mongoose.Types.ObjectId(req.body._id),
+  })
+    .populate('event')
+    .lean()
+    .exec()
+  if (!race) {
+    res.status(404).json({
+      message: "Couldn't find specified race id",
+    })
+    return
+  }
+  if (race.event.promoterId.toString() !== req.promoter._id.toString()) {
+    res.status(401).json({
+      message: "You can only delete a race if you're the promoter",
+    })
+    return
+  }
+  await Race.deleteOne({
+    _id: mongoose.Types.ObjectId(req.body._id),
+  }).exec()
+  await Entry.deleteMany({
+    raceId: mongoose.Types.ObjectId(req.body._id),
+  }).exec()
+  res.status(204).end()
 })
 
 const getEntries = _async(async (req, res) => {
