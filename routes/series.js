@@ -6,6 +6,7 @@ const auth = require('../middleware/auth');
 module.exports = (app) => {
   app.get('/series', auth, getSeries);
   app.post('/series', auth, create);
+  app.get('/series/authenticated', auth, getOwnSeries);
 };
 
 const create = _async(async (req, res) => {
@@ -21,7 +22,12 @@ const getSeries = _async(async (req, res) => {
     res.json(series);
     return;
   }
-  res.json(await Series.find({
-    promoterId: mongoose.Types.ObjectId(req.promoter._id)
-  }).lean().exec());
+  res.json(await Series.find({}).populate('promoter').lean().exec());
 });
+
+const getOwnSeries = _async(async (react, res) => {
+  const series = await Series.find({
+    promoterId: mongoose.Types.ObjectId(req.promoter._id)
+  }).populate('promoter').lean().exec();
+  res.json(series);
+})
