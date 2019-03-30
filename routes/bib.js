@@ -21,6 +21,16 @@ const create = _async(async (req, res) => {
     });
     return;
   }
+  const existingNumber = await Bib.findOne({
+    seriesId: mongoose.Types.ObjectId(req.body.seriesId),
+    bibNumber: req.body.bibNumber
+  }).lean().exec();
+  if (existingNumber) {
+    res.status(400).json({
+      message: 'This bib number is already in use'
+    });
+    return;
+  }
   const created = await Bib.create(req.body);
   res.json(created);
 });

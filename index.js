@@ -18,7 +18,7 @@ app.use((req, res, next) => {
 
 const mongoConnect = _async(async (req, res, next) => {
   res.on('finish', () => {
-    // mongoose.connection.close();
+    mongoose.connection.close();
   })
   await mongoose.connect(process.env.DB_URI, {
     connectTimeoutMS: 5000,

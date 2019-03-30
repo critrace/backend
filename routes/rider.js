@@ -21,10 +21,20 @@ const create = _async(async (req, res) => {
 });
 
 const getRiders = _async(async (req, res) => {
-  const rider = await Rider.findOne({
-    _id: mongoose.Types.ObjectId(req.query._id)
-  }).lean().exec();
-  res.json(rider);
+  let query = {};
+  if (req.query.license) {
+    query.license = req.query.license;
+  } else if (req.query._id) {
+    query._id = mongoose.Types.ObjectId(req.query._id);
+  }
+  const model = await Rider.findOne(query).lean().exec();
+  if (!model) {
+    res.status(404).json({
+      message: 'No model found'
+    });
+    return;
+  }
+  res.json(model);
 });
 
 const search = _async(async (req, res) => {
