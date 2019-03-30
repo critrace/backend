@@ -16,7 +16,7 @@ const EventSchema = new mongoose.Schema(
     },
     seriesId: {
       type: mongoose.Schema.Types.ObjectId,
-      required: false,
+      required: true,
     },
     promoterId: {
       type: mongoose.Schema.Types.ObjectId,
