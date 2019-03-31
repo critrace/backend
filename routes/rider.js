@@ -27,6 +27,12 @@ const getRiders = _async(async (req, res) => {
   } else if (req.query._id) {
     query._id = mongoose.Types.ObjectId(req.query._id)
   }
+  if (Object.keys(query).length === 0) {
+    // Mass find
+    const models = await Rider.find(query)
+    res.json(models)
+    return
+  }
   const model = await Rider.findOne(query)
     .lean()
     .exec()

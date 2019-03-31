@@ -89,9 +89,10 @@ const getRaces = _async(async (req, res) => {
       .exec()
     res.json(race)
   } else {
-    res.status(400).json({
-      message: 'Supply either an eventId or an _id query field',
-    })
+    const races = await Race.find({})
+      .lean()
+      .exec()
+    res.json(races)
   }
 })
 
