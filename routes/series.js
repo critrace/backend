@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const Series = mongoose.model('Series')
+const SeriesPromoter = mongoose.model('SeriesPromoter')
 const _async = require('async-express')
 const auth = require('../middleware/auth')
 
@@ -7,6 +8,7 @@ module.exports = (app) => {
   app.get('/series', getSeries)
   app.post('/series', auth, create)
   app.get('/series/authenticated', auth, getOwnSeries)
+  app.post('/series/promoters', auth, addPromoter)
 }
 
 const create = _async(async (req, res) => {
@@ -45,3 +47,35 @@ const getOwnSeries = _async(async (req, res) => {
     .exec()
   res.json(series)
 })
+
+const addPromoter = _async(async (req, res) => {
+  const promoter = await Promoter.findOne({
+    _id: mongoose.Types.ObjectId(req.body.promoterId),
+  })
+    .lean()
+    .exec()
+  if (!promoter) {
+    res.status(404).json({
+      message: 'Could not find promoter to add',
+    })
+    return
+  }
+  if (!(await isSeriesPromoter(req.body.seriesId, req.promoter._id))) {
+    res.status(401).json({
+      message: 'You must be a series promoter to do this',
+    })
+    return
+  }
+  await SeriesPromoter.create(req.body)
+  res.status(204).end()
+})
+
+exports.isSeriesPromoter = isSeriesPromoter
+
+async function isSeriesPromoter(promoterId, seriesId) {
+  const model = await SeriesPromoter.findOne({
+    promoterId: mongoose.Types.ObjectId(promoterId),
+    seriesId: mongoose.Types.ObjectId(seriesId),
+  })
+  return !!model
+}

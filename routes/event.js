@@ -4,6 +4,7 @@ const Race = mongoose.model('Race')
 const Entry = mongoose.model('Entry')
 const _async = require('async-express')
 const auth = require('../middleware/auth')
+const { isSeriesPromoter } = require('./series')
 
 module.exports = (app) => {
   app.get('/events', getEvent)
@@ -57,7 +58,7 @@ const deleteEvent = _async(async (req, res) => {
     })
     return
   }
-  if (event.promoterId.toString() !== req.promoter._id.toString()) {
+  if (!(await isSeriesPromoter(event.seriesId, req.promoter._id))) {
     res.status(401).json({
       message: 'Not authorized to delete event',
     })

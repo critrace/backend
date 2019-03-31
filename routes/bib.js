@@ -3,6 +3,7 @@ const Bib = mongoose.model('Bib')
 const Entry = mongoose.model('Entry')
 const _async = require('async-express')
 const auth = require('../middleware/auth')
+const { isSeriesPromoter } = require('./series')
 
 module.exports = (app) => {
   app.get('/bibs', getBibs)
@@ -23,6 +24,13 @@ const create = _async(async (req, res) => {
     })
     return
   }
+  if (!(await isSeriesPromoter(req.body.seriesId, req.promoter._id))) {
+    res.status(401).json({
+      message: 'Must be a series promoter to add a bib',
+    })
+    return
+  }
+
   const existingNumber = await Bib.findOne({
     seriesId: mongoose.Types.ObjectId(req.body.seriesId),
     bibNumber: req.body.bibNumber,
@@ -60,6 +68,23 @@ const getBibs = _async(async (req, res) => {
 })
 
 const deleteBib = _async(async (req, res) => {
+  const bib = await Bib.findOne({
+    _id: mongoose.Types.ObjectId(req.body._id),
+  })
+    .lean()
+    .exec()
+  if (!bib) {
+    res.status(404).json({
+      message: 'Unable to find by to delete',
+    })
+    return
+  }
+  if (!(await isSeriesPromoter(bib.seriesId, req.promoter._id))) {
+    res.status(401).json({
+      message: 'Must be a series promoter to add a bib',
+    })
+    return
+  }
   await Bib.deleteOne({
     _id: mongoose.Types.ObjectId(req.body._id),
   }).exec()

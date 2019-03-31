@@ -5,6 +5,7 @@ const Entry = mongoose.model('Entry')
 const Bib = mongoose.model('Bib')
 const _async = require('async-express')
 const auth = require('../middleware/auth')
+const { isSeriesPromoter } = require('./series')
 
 module.exports = (app) => {
   app.get('/races', getRaces)
@@ -44,7 +45,7 @@ const _delete = _async(async (req, res) => {
     })
     return
   }
-  if (race.event.promoterId.toString() !== req.promoter._id.toString()) {
+  if (!(await isSeriesPromoter(race.seriesId, req.promoter._id))) {
     res.status(401).json({
       message: "You can only delete a race if you're the promoter",
     })
@@ -103,7 +104,7 @@ const createEntry = _async(async (req, res) => {
     .populate('event')
     .lean()
     .exec()
-  if (race.event.promoterId.toString() !== req.promoter._id.toString()) {
+  if (!(await isSeriesPromoter(race.seriesId, req.promoter._id))) {
     res.status(401).json({
       message: 'You are not authorized to add entries.',
     })
@@ -153,7 +154,7 @@ const removeEntry = _async(async (req, res) => {
     .populate('event')
     .lean()
     .exec()
-  if (race.event.promoterId.toString() !== req.promoter._id.toString()) {
+  if (!(await isSeriesPromoter(race.seriesId, req.promoter._id))) {
     res.status(401).json({
       message: 'You are not authorized to remove entries.',
     })
