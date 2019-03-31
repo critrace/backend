@@ -38,7 +38,7 @@
   },
   "homepage": "https://github.com/critresult/backend#readme",
   "dependencies": {
-    "async-express": "^0.1.0",
+    "async-express": "^0.1.3",
     "bcrypt": "^3.0.5",
     "email-validator": "^2.0.4",
     "express": "^4.16.4",

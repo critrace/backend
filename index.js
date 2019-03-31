@@ -24,9 +24,11 @@ const mongoConnect = _async(async (req, res, next) => {
     connectTimeoutMS: 5000,
     useNewUrlParser: true,
   })
-  res.on('finish', () => {
-    mongoose.disconnect()
-  })
+  next()
+})
+
+const mongoDisconnect = _async(async (req, res, next) => {
+  await mongoose.disconnect()
   next()
 })
 
@@ -41,5 +43,7 @@ require('./routes/race')(app)
 require('./routes/rider')(app)
 require('./routes/series')(app)
 require('./routes/bib')(app)
+
+app.use(mongoDisconnect)
 
 module.exports = app
