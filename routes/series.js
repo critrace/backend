@@ -26,7 +26,7 @@ async function isSeriesPromoter(seriesId, promoterId) {
 const create = _async(async (req, res) => {
   const created = await Series.create(req.body)
   await SeriesPromoter.create({
-    promoterId,
+    promoterId: mongoose.Types.ObjectId(req.promoter._id),
     seriesId: created._id,
     creator: true,
   })
