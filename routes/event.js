@@ -15,6 +15,12 @@ module.exports = (app) => {
 }
 
 const create = _async(async (req, res) => {
+  if (!(await isSeriesPromoter(req.body.seriesId, req.promoter._id))) {
+    res.status(401).json({
+      message: 'You must be a series promoter to create an event',
+    })
+    return
+  }
   const created = await Event.create({
     promoterId: req.promoter._id,
     ...req.body,
