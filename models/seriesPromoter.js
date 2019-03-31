@@ -10,7 +10,7 @@ const SeriesPromoterSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       required: true,
     },
-    permanent: {
+    creator: {
       type: Boolean,
       required: true,
       default: false,

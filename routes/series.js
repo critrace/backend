@@ -10,6 +10,7 @@ module.exports = (app) => {
   app.post('/series', auth, create)
   app.get('/series/authenticated', auth, getOwnSeries)
   app.post('/series/invite', auth, addPromoter)
+  app.get('/series/promoters', getPromoters)
 }
 
 module.exports.isSeriesPromoter = isSeriesPromoter
@@ -26,6 +27,11 @@ const create = _async(async (req, res) => {
   const created = await Series.create({
     promoterId: req.promoter._id,
     ...req.body,
+  })
+  await SeriesPromoter.create({
+    promoterId,
+    seriesId: created._id,
+    creator: true,
   })
   res.json(created)
 })
@@ -57,6 +63,16 @@ const getOwnSeries = _async(async (req, res) => {
     .lean()
     .exec()
   res.json(series)
+})
+
+const getPromoters = _async(async (req, res) => {
+  const promoters = await SeriesPromoter.find({
+    seriesId: req.query.seriesId,
+  })
+    .populate('promoter')
+    .lean()
+    .exec()
+  res.json(promoters.map((p) => p.promoter))
 })
 
 const addPromoter = _async(async (req, res) => {
