@@ -6,11 +6,6 @@ const SeriesSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    promoterId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Promoter',
-      required: true,
-    },
   },
   {
     collection: 'series',

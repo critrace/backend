@@ -24,10 +24,7 @@ async function isSeriesPromoter(seriesId, promoterId) {
 }
 
 const create = _async(async (req, res) => {
-  const created = await Series.create({
-    promoterId: req.promoter._id,
-    ...req.body,
-  })
+  const created = await Series.create(req.body)
   await SeriesPromoter.create({
     promoterId,
     seriesId: created._id,
@@ -56,13 +53,13 @@ const getSeries = _async(async (req, res) => {
 })
 
 const getOwnSeries = _async(async (req, res) => {
-  const series = await Series.find({
+  const series = await SeriesPromoter.find({
     promoterId: mongoose.Types.ObjectId(req.promoter._id),
   })
-    .populate('promoter')
+    .populate('series')
     .lean()
     .exec()
-  res.json(series)
+  res.json(series.map((s) => s.series))
 })
 
 const getPromoters = _async(async (req, res) => {
