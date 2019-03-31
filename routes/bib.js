@@ -81,7 +81,7 @@ const deleteBib = _async(async (req, res) => {
   }
   if (!(await isSeriesPromoter(bib.seriesId, req.promoter._id))) {
     res.status(401).json({
-      message: 'Must be a series promoter to add a bib',
+      message: 'Must be a series promoter to delete a bib',
     })
     return
   }

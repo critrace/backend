@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const Series = mongoose.model('Series')
 const SeriesPromoter = mongoose.model('SeriesPromoter')
+const Promoter = mongoose.model('Promoter')
 const _async = require('async-express')
 const auth = require('../middleware/auth')
 
@@ -8,7 +9,17 @@ module.exports = (app) => {
   app.get('/series', getSeries)
   app.post('/series', auth, create)
   app.get('/series/authenticated', auth, getOwnSeries)
-  app.post('/series/promoters', auth, addPromoter)
+  app.post('/series/invite', auth, addPromoter)
+}
+
+module.exports.isSeriesPromoter = isSeriesPromoter
+
+async function isSeriesPromoter(seriesId, promoterId) {
+  const model = await SeriesPromoter.findOne({
+    promoterId: mongoose.Types.ObjectId(promoterId),
+    seriesId: mongoose.Types.ObjectId(seriesId),
+  })
+  return !!model
 }
 
 const create = _async(async (req, res) => {
@@ -50,7 +61,7 @@ const getOwnSeries = _async(async (req, res) => {
 
 const addPromoter = _async(async (req, res) => {
   const promoter = await Promoter.findOne({
-    _id: mongoose.Types.ObjectId(req.body.promoterId),
+    email: req.body.email,
   })
     .lean()
     .exec()
@@ -66,16 +77,6 @@ const addPromoter = _async(async (req, res) => {
     })
     return
   }
-  await SeriesPromoter.create(req.body)
+  await SeriesPromoter.create({ promoterId: promoter._id, ...req.body })
   res.status(204).end()
 })
-
-exports.isSeriesPromoter = isSeriesPromoter
-
-async function isSeriesPromoter(promoterId, seriesId) {
-  const model = await SeriesPromoter.findOne({
-    promoterId: mongoose.Types.ObjectId(promoterId),
-    seriesId: mongoose.Types.ObjectId(seriesId),
-  })
-  return !!model
-}
