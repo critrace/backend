@@ -29,6 +29,14 @@ const create = _async(async (req, res) => {
 })
 
 const getEvent = _async(async (req, res) => {
+  if (!req.query._id) {
+    const events = await Event.find({})
+      .populate('races')
+      .lean()
+      .exec()
+    res.json(events)
+    return
+  }
   const event = await Event.findOne({
     _id: mongoose.Types.ObjectId(req.query._id),
   })
