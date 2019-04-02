@@ -14,6 +14,11 @@ const BibSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    hasRentalTransponder: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
   {
     collection: 'bibs',

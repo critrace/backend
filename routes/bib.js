@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const Bib = mongoose.model('Bib')
 const Entry = mongoose.model('Entry')
+const SeriesPromoter = mongoose.model('SeriesPromoter')
 const _async = require('async-express')
 const auth = require('../middleware/auth')
 const { isSeriesPromoter } = require('./series')
@@ -9,6 +10,7 @@ module.exports = (app) => {
   app.get('/bibs', getBibs)
   app.post('/bibs', auth, create)
   app.delete('/bibs', auth, deleteBib)
+  app.put('/bibs', auth, update)
 }
 
 const create = _async(async (req, res) => {
@@ -91,5 +93,31 @@ const deleteBib = _async(async (req, res) => {
   await Entry.deleteMany({
     bibId: mongoose.Types.ObjectId(req.body._id),
   }).exec()
+  res.status(204).end()
+})
+
+const update = _async(async (req, res) => {
+  const bib = await Bib.findOne(req.body.where)
+    .lean()
+    .exec()
+  if (!bib) {
+    res.status(404).json({
+      message: 'Unable to find bib to update',
+    })
+    return
+  }
+  const seriesPromoter = await SeriesPromoter.find({
+    seriesId: mongoose.Types.ObjectId(bib.seriesId),
+    promoterId: mongoose.Types.ObjectId(req.promoter._id),
+  })
+    .lean()
+    .exec()
+  if (!seriesPromoter) {
+    res.status(401).json({
+      message: 'You are not authorized to update this bib',
+    })
+    return
+  }
+  await Bib.updateOne(req.body.where, req.body.changes).exec()
   res.status(204).end()
 })
