@@ -77,9 +77,18 @@ const search = _async(async (req, res) => {
     ],
   }))
   const riders = await Rider.find({
-    licenseExpirationDate: {
-      $gte: new Date(),
-    },
+    $or: [
+      {
+        licenseExpirationDate: {
+          $gte: new Date(),
+        },
+      },
+      {
+        license: {
+          $exists: false,
+        },
+      },
+    ],
   })
     .and(orClauses)
     .populate('bibs')
