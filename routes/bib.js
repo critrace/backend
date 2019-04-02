@@ -106,7 +106,7 @@ const update = _async(async (req, res) => {
     })
     return
   }
-  const seriesPromoter = await SeriesPromoter.find({
+  const seriesPromoter = await SeriesPromoter.findOne({
     seriesId: mongoose.Types.ObjectId(bib.seriesId),
     promoterId: mongoose.Types.ObjectId(req.promoter._id),
   })
