@@ -52,29 +52,36 @@ const getRiders = _async(async (req, res) => {
 })
 
 const search = _async(async (req, res) => {
-  const searchRegex = new RegExp(`^${req.query.search}`, 'i')
+  const searchString = req.query.search || ''
+  // Limit to 3 search terms
+  const strings = searchString.split(' ').slice(0, 3)
+  const searchRegexes = strings.map((s) => new RegExp(`^${s}`, 'i'))
+  // And each of these or clauses
+  const orClauses = searchRegexes.map((regex) => ({
+    $or: [
+      {
+        license: {
+          $regex: regex,
+        },
+      },
+      {
+        firstname: {
+          $regex: regex,
+        },
+      },
+      {
+        lastname: {
+          $regex: regex,
+        },
+      },
+    ],
+  }))
   const riders = await Rider.find({
     licenseExpirationDate: {
       $gte: new Date(),
     },
   })
-    .or([
-      {
-        license: {
-          $regex: searchRegex,
-        },
-      },
-      {
-        firstname: {
-          $regex: searchRegex,
-        },
-      },
-      {
-        lastname: {
-          $regex: searchRegex,
-        },
-      },
-    ])
+    .and(orClauses)
     .populate('bibs')
     .limit(20)
     .lean()
