@@ -60,6 +60,16 @@ const getBibs = _async(async (req, res) => {
       .exec()
     res.json(bibs)
     return
+  } else if (req.query._id) {
+    const bib = await Bib.findOne({
+      _id: mongoose.Types.ObjectId(req.query._id),
+    })
+      .populate('rider')
+      .populate('series')
+      .lean()
+      .exec()
+    res.json(bib)
+    return
   }
   res.json(
     await Bib.find({})
