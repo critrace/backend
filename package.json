@@ -10,22 +10,7 @@
   "eslintConfig": {
     "extends": [
       "@jchancehud/eslint-config"
-    ],
-    "rules": {
-      "semi": [
-        1,
-        "never"
-      ],
-      "prettier/prettier": [
-        1,
-        {
-          "trailingComma": "es5",
-          "arrowParens": "always",
-          "singleQuote": true,
-          "semi": false
-        }
-      ]
-    }
+    ]
   },
   "repository": {
     "type": "git",
@@ -46,7 +31,7 @@
     "mongoose": "^5.4.19"
   },
   "devDependencies": {
-    "@jchancehud/eslint-config": "0.0.9",
+    "@jchancehud/eslint-config": "^0.0.10",
     "dotenv": "^7.0.0",
     "eslint": "^5.16.0"
   }
