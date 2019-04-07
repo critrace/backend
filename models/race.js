@@ -14,6 +14,10 @@ const RaceSchema = new mongoose.Schema(
       type: Date,
       required: false,
     },
+    lapCount: {
+      type: Number,
+      required: false,
+    },
     actualEnd: {
       type: Date,
       required: false,

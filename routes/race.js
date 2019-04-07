@@ -4,9 +4,11 @@ const Event = mongoose.model('Event')
 const Entry = mongoose.model('Entry')
 const Bib = mongoose.model('Bib')
 const SeriesPromoter = mongoose.model('SeriesPromoter')
+const Passing = mongoose.model('Passing')
 const _async = require('async-express')
 const auth = require('../middleware/auth')
 const { isSeriesPromoter } = require('./series')
+const groupby = require('lodash.groupby')
 
 module.exports = (app) => {
   app.get('/races', getRaces)
@@ -16,7 +18,50 @@ module.exports = (app) => {
   app.get('/races/entries', getEntries)
   app.delete('/races/entries', auth, removeEntry)
   app.delete('/races', auth, _delete)
+  app.get('/races/leaderboard', leaderboard)
 }
+
+const leaderboard = _async(async (req, res) => {
+  const race = await Race.findOne({
+    _id: mongoose.Types.ObjectId(req.query.raceId),
+  }).exec()
+  const passings = await Passing.find({
+    raceId: race._id,
+    date: {
+      $gte: race.actualStart || new Date(0),
+    },
+  })
+    .lean()
+    .exec()
+  const passingsByTransponder = groupby(passings, 'transponder')
+  const results = Object.keys(passingsByTransponder)
+    .map((transponder) => {
+      const passCount = passingsByTransponder[transponder].length
+      const latestPass = passingsByTransponder[transponder]
+        .sort((p1, p2) => {
+          if (p1.date > p2.date) return 1
+          return -1
+        })
+        .pop()
+      return {
+        ...latestPass,
+        lapCount: Math.min(passCount, race.lapCount || Number.MAX_VALUE),
+      }
+    })
+    .sort((p1, p2) => {
+      if (p1.lapCount < p2.lapCount) {
+        return 1
+      } else if (p1.lapCount > p2.lapCount) {
+        return -1
+      } else if (p1.date > p2.date) {
+        return 1
+      } else if (p1.date < p2.date) {
+        return -1
+      }
+      return 0
+    })
+  res.json(results)
+})
 
 const create = _async(async (req, res) => {
   const event = await Event.findOne({

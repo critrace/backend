@@ -49,8 +49,9 @@ const create = _async(async (req, res) => {
   })
     .lean()
     .exec()
+  const riderId = rider ? { riderId: rider._id } : {}
   await Passing.create({
-    riderId: rider._id,
+    ...riderId,
     seriesId: race.seriesId,
     ...req.body,
   }).catch(console.log)
