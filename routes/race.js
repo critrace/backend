@@ -3,6 +3,7 @@ const Race = mongoose.model('Race')
 const Event = mongoose.model('Event')
 const Entry = mongoose.model('Entry')
 const Bib = mongoose.model('Bib')
+const SeriesPromoter = mongoose.model('SeriesPromoter')
 const _async = require('async-express')
 const auth = require('../middleware/auth')
 const { isSeriesPromoter } = require('./series')
@@ -10,6 +11,7 @@ const { isSeriesPromoter } = require('./series')
 module.exports = (app) => {
   app.get('/races', getRaces)
   app.post('/races', auth, create)
+  app.post('/races/start', auth, start)
   app.post('/races/entry', auth, createEntry)
   app.get('/races/entries', getEntries)
   app.delete('/races/entries', auth, removeEntry)
@@ -60,6 +62,37 @@ const _delete = _async(async (req, res) => {
   res.status(204).end()
 })
 
+const start = _async(async (req, res) => {
+  const race = await Race.findOne({
+    _id: mongoose.Types.ObjectId(req.body._id),
+  }).exec()
+  const seriesPromoter = await SeriesPromoter.findOne({
+    seriesId: race.seriesId,
+    promoterId: mongoose.Types.ObjectId(req.promoter._id),
+  }).exec()
+  if (!seriesPromoter) {
+    res.status(401).json({
+      message: 'You are not authorized to start this race',
+    })
+    return
+  }
+  if (race.actualStart) {
+    res.status(400).json({
+      message: 'This race already has an actualStart',
+    })
+    return
+  }
+  await Race.updateOne(
+    {
+      _id: mongoose.Types.ObjectId(req.body._id),
+    },
+    {
+      actualStart: req.body.actualStart,
+    }
+  )
+  res.status(204).end()
+})
+
 const getEntries = _async(async (req, res) => {
   const entries = await Entry.find({
     raceId: mongoose.Types.ObjectId(req.query._id),
@@ -91,6 +124,8 @@ const getRaces = _async(async (req, res) => {
     res.json(race)
   } else {
     const races = await Race.find({})
+      .populate('event')
+      .populate('series')
       .lean()
       .exec()
     res.json(races)

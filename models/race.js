@@ -14,6 +14,10 @@ const RaceSchema = new mongoose.Schema(
       type: Date,
       required: false,
     },
+    actualEnd: {
+      type: Date,
+      required: false,
+    },
     flyerUrl: {
       type: String,
       required: false,
@@ -28,12 +32,20 @@ const RaceSchema = new mongoose.Schema(
     },
     seriesId: {
       type: mongoose.Schema.Types.ObjectId,
+      required: true,
     },
   },
   {
     collection: 'races',
   }
 )
+
+RaceSchema.virtual('series', {
+  ref: 'Series',
+  localField: 'seriesId',
+  foreignField: '_id',
+  justOne: true,
+})
 
 RaceSchema.virtual('event', {
   ref: 'Event',
