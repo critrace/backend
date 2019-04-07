@@ -5,6 +5,7 @@ const Entry = mongoose.model('Entry')
 const Bib = mongoose.model('Bib')
 const SeriesPromoter = mongoose.model('SeriesPromoter')
 const Passing = mongoose.model('Passing')
+const Rider = mongoose.model('Rider')
 const _async = require('async-express')
 const auth = require('../middleware/auth')
 const { isSeriesPromoter } = require('./series')
@@ -36,15 +37,17 @@ const leaderboard = _async(async (req, res) => {
   const passingsByTransponder = groupby(passings, 'transponder')
   const results = Object.keys(passingsByTransponder)
     .map((transponder) => {
-      const passCount = passingsByTransponder[transponder].length
-      const latestPass = passingsByTransponder[transponder]
-        .sort((p1, p2) => {
-          if (p1.date > p2.date) return 1
-          return -1
-        })
-        .pop()
+      const passes = passingsByTransponder[transponder].sort((p1, p2) => {
+        if (p1.date > p2.date) return 1
+        return -1
+      })
+      const passCount = passes.length
+      const passIndex = Math.min(
+        passes.length - 1,
+        race.lapCount - 1 || Number.MAX_VALUE
+      )
       return {
-        ...latestPass,
+        ...passes[passIndex],
         lapCount: Math.min(passCount, race.lapCount || Number.MAX_VALUE),
       }
     })
@@ -60,7 +63,19 @@ const leaderboard = _async(async (req, res) => {
       }
       return 0
     })
-  res.json(results)
+  // Retroactively load associated transponders if not mapped to riderId
+  const loadedRiderIdResults = await Promise.all(
+    results.map((pass) => {
+      if (pass.riderId) return Promise.resolve(pass)
+      return Rider.findOne({
+        transponder: pass.transponder,
+      })
+        .lean()
+        .exec()
+        .then((rider) => (rider ? { ...pass, riderId: rider._id } : pass))
+    })
+  )
+  res.json(loadedRiderIdResults)
 })
 
 const create = _async(async (req, res) => {
