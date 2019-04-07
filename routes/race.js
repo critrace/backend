@@ -12,7 +12,7 @@ const { isSeriesPromoter } = require('./series')
 const groupby = require('lodash.groupby')
 
 module.exports = (app) => {
-  app.get('/races', auth, getRaces)
+  app.get('/races', auth.notRequired, getRaces)
   app.post('/races', auth, create)
   app.post('/races/start', auth, start)
   app.post('/races/entry', auth, createEntry)
@@ -183,9 +183,14 @@ const getRaces = _async(async (req, res) => {
       .exec()
     res.json(race)
   } else {
-    const series = await SeriesPromoter.find({
-      promoterId: mongoose.Types.ObjectId(req.promoter._id),
-    }).exec()
+    const promoterId = req.promoter._id
+    const series = await SeriesPromoter.find(
+      promoterId
+        ? {
+            promoterId: mongoose.Types.ObjectId(req.promoter._id),
+          }
+        : {}
+    ).exec()
     const races = await Race.find({
       $or: series.map((seriesPromoter) => ({
         seriesId: seriesPromoter.seriesId,

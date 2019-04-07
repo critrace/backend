@@ -17,3 +17,21 @@ module.exports = (req, res, next) => {
     res.send(err.toString())
   }
 }
+
+module.exports.notRequired = (req, res, next) => {
+  const token = req.body.token || req.query.token
+  if (!token) {
+    req.promoter = {}
+    next()
+    return
+  }
+
+  try {
+    req.promoter = jwt.verify(token, process.env.WEB_TOKEN_SECRET)
+    next()
+  } catch (err) {
+    console.log('Error decoding token', err)
+    res.status(500)
+    res.send(err.toString())
+  }
+}
