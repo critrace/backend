@@ -2,10 +2,6 @@ const mongoose = require('mongoose')
 
 const PassingSchema = new mongoose.Schema(
   {
-    passingNumber: {
-      type: Number,
-      required: true,
-    },
     transponder: {
       type: String,
       required: true,

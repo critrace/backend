@@ -37,7 +37,6 @@ const create = _async(async (req, res) => {
   }
   const existingPassing = await Passing.findOne({
     raceId: mongoose.Types.ObjectId(req.body.raceId),
-    passingNumber: req.body.passingNumber,
     date: req.body.date,
     transponder: req.body.transponder,
   }).exec()
