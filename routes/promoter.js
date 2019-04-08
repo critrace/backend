@@ -10,6 +10,7 @@ module.exports = (app) => {
   app.post('/promoters', create)
   app.post('/promoters/login', login)
   app.get('/promoters', auth, load)
+  app.put('/promoters', auth, update)
 }
 
 const load = _async(async (req, res) => {
@@ -62,6 +63,40 @@ const create = _async(async (req, res) => {
     process.env.WEB_TOKEN_SECRET
   )
   res.json({ ...created, token })
+})
+
+const update = _async(async (req, res) => {
+  const promoter = await Promoter.findOne({
+    _id: mongoose.Types.ObjectId(req.promoter._id),
+  }).exec()
+  if (req.body.password && !req.body.oldPassword) {
+    res.status(400).json({
+      message: 'Supply an oldPassword to update the passwordHash',
+    })
+    return
+  } else if (req.body.password) {
+    const oldPasswordValid = await bcrypt.compare(
+      req.body.oldPassword,
+      promoter.passwordHash
+    )
+    if (!oldPasswordValid) {
+      res.status(401).json({
+        message: 'Your old password is not correct. Please try again.',
+      })
+      return
+    }
+    const salt = await bcrypt.genSalt(10)
+    req.body.passwordHash = await bcrypt.hash(req.body.password, salt)
+  }
+  await Promoter.updateOne(
+    {
+      _id: mongoose.Types.ObjectId(req.promoter._id),
+    },
+    {
+      ...req.body,
+    }
+  )
+  res.status(204).end()
 })
 
 const login = _async(async (req, res) => {
