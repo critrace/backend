@@ -9,6 +9,7 @@ const auth = require('../middleware/auth')
 module.exports = (app) => {
   app.get('/passings', load)
   app.post('/passings', auth, create)
+  app.delete('/passings', auth, _delete)
 }
 
 const create = _async(async (req, res) => {
@@ -74,4 +75,30 @@ const load = _async(async (req, res) => {
     .lean()
     .exec()
   res.json(models)
+})
+
+const _delete = _async(async (req, res) => {
+  const passing = await Passing.findOne({
+    _id: mongoose.Types.ObjectId(req.body._id),
+  }).exec()
+  if (!passing) {
+    res.status(404).json({
+      message: `Couldn't find passing with _id ${req.body._id}`,
+    })
+    return
+  }
+  const seriesPromoter = await SeriesPromoter.findOne({
+    seriesId: passing.seriesId,
+    promoterId: req.promoter._id,
+  })
+  if (!seriesPromoter) {
+    res.status(401).json({
+      message: `You're not a series promoter for this race`,
+    })
+    return
+  }
+  await Passing.deleteOne({
+    _id: mongoose.Types.ObjectId(req.body._id),
+  }).exec()
+  res.status(204).end()
 })
