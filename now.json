@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "alias": ["api.critresult.com"],
+  "alias": ["api.critrace.com"],
   "env": {
     "DB_URI": "@db-uri",
     "WEB_TOKEN_SECRET": "@web-token-secret"
