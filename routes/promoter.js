@@ -53,6 +53,7 @@ const create = _async(async (req, res) => {
   const passwordHash = await bcrypt.hash(req.body.password, salt)
   const created = await Promoter.create({
     ...req.body,
+    email: req.body.email.toLowerCase(),
     passwordHash,
     createdAt: new Date(),
   })
