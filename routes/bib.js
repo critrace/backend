@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const Bib = mongoose.model('Bib')
 const Entry = mongoose.model('Entry')
 const SeriesPromoter = mongoose.model('SeriesPromoter')
+const Race = mongoose.model('Race')
 const _async = require('async-express')
 const auth = require('../middleware/auth')
 const { isSeriesPromoter } = require('./series')
@@ -60,6 +61,23 @@ const getBibs = _async(async (req, res) => {
       .exec()
     res.json(bibs)
     return
+  } else if (req.query.raceId) {
+    const race = await Race.findOne({
+      _id: mongoose.Types.ObjectId(req.query.raceId),
+    }).exec()
+    if (!race) {
+      res.status(400).json({
+        message: 'Could not find the requested race',
+      })
+      return
+    }
+    const bibs = await Bib.find({
+      seriesId: mongoose.Types.ObjectId(req.query.seriesId),
+    })
+      .lean()
+      .exec()
+    res.json(bibs)
+    return
   } else if (req.query._id) {
     const bib = await Bib.findOne({
       _id: mongoose.Types.ObjectId(req.query._id),
@@ -71,12 +89,7 @@ const getBibs = _async(async (req, res) => {
     res.json(bib)
     return
   }
-  res.json(
-    await Bib.find({})
-      .populate('rider')
-      .lean()
-      .exec()
-  )
+  res.status(204).end()
 })
 
 const deleteBib = _async(async (req, res) => {
