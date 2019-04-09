@@ -8,7 +8,7 @@ module.exports = (app) => {
   app.post('/riders', auth, create)
   app.get('/riders/search', search)
   app.put('/riders', auth, update)
-  app.post('/riders/byId', auth, byId)
+  app.post('/riders/byId', byId)
 }
 
 const byId = _async(async (req, res) => {
