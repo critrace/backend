@@ -120,6 +120,12 @@ const deleteBib = _async(async (req, res) => {
 })
 
 const update = _async(async (req, res) => {
+  if (!req.body.where) {
+    res.status(400).json({
+      message: 'No where clause supplied',
+    })
+    return
+  }
   const bib = await Bib.findOne(req.body.where)
     .lean()
     .exec()

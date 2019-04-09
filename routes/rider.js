@@ -113,6 +113,12 @@ const search = _async(async (req, res) => {
 })
 
 const update = _async(async (req, res) => {
+  if (!req.body.where) {
+    res.status(400).json({
+      message: 'No where clause supplied',
+    })
+    return
+  }
   await Rider.updateOne(req.body.where, req.body.changes).exec()
   res.status(204).end()
 })
