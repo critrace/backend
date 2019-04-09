@@ -55,7 +55,7 @@ const create = _async(async (req, res) => {
     ...riderId,
     seriesId: race.seriesId,
     ...req.body,
-  }).catch(console.log)
+  })
   res.status(204).end()
 })
 
