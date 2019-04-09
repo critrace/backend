@@ -200,7 +200,8 @@ const getRaces = _async(async (req, res) => {
       .populate('series')
       .lean()
       .exec()
-    res.json(races)
+    // Sort the races by event startDate descending
+    res.json(races.sort((r1, r2) => r1.event.startDate < r2.event.startDate))
   }
 })
 
