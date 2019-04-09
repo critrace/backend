@@ -23,9 +23,16 @@ module.exports = (app) => {
 }
 
 const leaderboard = _async(async (req, res) => {
-  const race = await Race.findOne({
-    _id: mongoose.Types.ObjectId(req.query.raceId),
-  }).exec()
+  const [race, enteredRiderIds] = await Promise.all([
+    Race.findOne({
+      _id: mongoose.Types.ObjectId(req.query.raceId),
+    }).exec(),
+    Entry.find({
+      raceId: mongoose.Types.ObjectId(req.query.raceId),
+    })
+      .exec()
+      .then((entries) => entries.map((e) => e.riderId.toString())),
+  ])
   const passings = await Passing.find({
     raceId: race._id,
     date: {
@@ -75,7 +82,12 @@ const leaderboard = _async(async (req, res) => {
         .then((rider) => (rider ? { ...pass, riderId: rider._id } : pass))
     })
   )
-  res.json(loadedRiderIdResults)
+  res.json(
+    loadedRiderIdResults.filter(
+      (pass) =>
+        !pass.riderId || enteredRiderIds.indexOf(pass.riderId.toString()) !== -1
+    )
+  )
 })
 
 const create = _async(async (req, res) => {
