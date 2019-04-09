@@ -29,23 +29,27 @@ const create = _async(async (req, res) => {
 })
 
 const getEvent = _async(async (req, res) => {
-  if (!req.query._id) {
-    const events = await Event.find({})
-      .sort({ startDate: -1 })
+  if (req.query._id) {
+    const event = await Event.findOne({
+      _id: mongoose.Types.ObjectId(req.query._id),
+    })
       .populate('races')
+      .populate('series')
+      .lean()
+      .exec()
+    res.json(event)
+    return
+  } else if (req.query.seriesId) {
+    const events = await Event.find({
+      seriesId: mongoose.Types.ObjectId(req.query.seriesId),
+    })
+      .sort({ startDate: -1 })
       .lean()
       .exec()
     res.json(events)
     return
   }
-  const event = await Event.findOne({
-    _id: mongoose.Types.ObjectId(req.query._id),
-  })
-    .populate('races')
-    .populate('series')
-    .lean()
-    .exec()
-  res.json(event)
+  res.status(204).end()
 })
 
 const upcomingEvents = _async(async (req, res) => {
