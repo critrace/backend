@@ -8,7 +8,17 @@ module.exports = (app) => {
   app.post('/riders', auth, create)
   app.get('/riders/search', search)
   app.put('/riders', auth, update)
+  app.post('/riders/byId', auth, byId)
 }
+
+const byId = _async(async (req, res) => {
+  const riders = await Rider.find({
+    $or: req.body._ids.map((_id) => ({
+      _id,
+    })),
+  })
+  res.json(riders)
+})
 
 const create = _async(async (req, res) => {
   if (req.body.models) {
