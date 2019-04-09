@@ -72,7 +72,7 @@ const getBibs = _async(async (req, res) => {
       return
     }
     const bibs = await Bib.find({
-      seriesId: mongoose.Types.ObjectId(req.query.seriesId),
+      seriesId: mongoose.Types.ObjectId(race.seriesId),
     })
       .lean()
       .exec()
