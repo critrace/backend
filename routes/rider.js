@@ -12,6 +12,10 @@ module.exports = (app) => {
 }
 
 const byId = _async(async (req, res) => {
+  if (req.body._ids && req.body._ids.length === 0) {
+    res.json([])
+    return
+  }
   const riders = await Rider.find({
     $or: req.body._ids.map((_id) => ({
       _id,
