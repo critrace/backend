@@ -8,7 +8,7 @@ const { isSeriesPromoter } = require('./series')
 
 module.exports = (app) => {
   app.get('/events', getEvent)
-  app.get('/events/upcoming', upcomingEvents)
+  app.get('/events/home', homeEvents)
   app.post('/events', auth, create)
   app.delete('/events', auth, deleteEvent)
   app.get('/events/entries', getEntries)
@@ -52,12 +52,15 @@ const getEvent = _async(async (req, res) => {
   res.status(204).end()
 })
 
-const upcomingEvents = _async(async (req, res) => {
+const homeEvents = _async(async (req, res) => {
   const events = await Event.find({
-    startDate: {
-      $gte: new Date(),
+    seriesId: {
+      $ne: mongoose.Types.ObjectId('5c9f78c12d17216b9edfbb9f'),
     },
   })
+    .sort({
+      startDate: -1,
+    })
     .populate('races')
     .populate('series')
     .lean()
