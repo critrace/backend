@@ -84,7 +84,7 @@ const leaderboard = _async(async (req, res) => {
         !pass.riderId || enteredRiderIds.indexOf(pass.riderId.toString()) !== -1
     )
     .map((pass) => {
-      const lapLeaderboard = resultsForLap(pass.lapCount)
+      const lapLeaderboard = resultsForLap(pass.lapCount - 1)
       const leaderTransponder = _.first(lapLeaderboard).transponder
       const leaderPass =
         passingsByTransponder[leaderTransponder][pass.lapCount - 1]
