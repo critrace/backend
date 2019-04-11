@@ -10,6 +10,7 @@ const _async = require('async-express')
 const auth = require('../middleware/auth')
 const { isSeriesPromoter } = require('./series')
 const groupby = require('lodash.groupby')
+const moment = require('moment')
 
 module.exports = (app) => {
   app.get('/races', auth.notRequired, getRaces)
@@ -71,7 +72,7 @@ const leaderboard = _async(async (req, res) => {
       return 0
     })
   // Retroactively load associated transponders if not mapped to riderId
-  const loadedRiderIdResults = await Promise.all(
+  const riderResults = (await Promise.all(
     results.map((pass) => {
       if (pass.riderId) return Promise.resolve(pass)
       return Rider.findOne({
@@ -81,13 +82,22 @@ const leaderboard = _async(async (req, res) => {
         .exec()
         .then((rider) => (rider ? { ...pass, riderId: rider._id } : pass))
     })
-  )
-  res.json(
-    loadedRiderIdResults.filter(
+  ))
+    .filter(
       (pass) =>
         !pass.riderId || enteredRiderIds.indexOf(pass.riderId.toString()) !== -1
     )
-  )
+    .map((pass, index, array) => {
+      const firstPass = array.slice().shift()
+      if (firstPass.lapCount !== pass.lapCount) return pass
+      const secondsDiff =
+        moment(pass.date).unix() - moment(firstPass.date).unix()
+      return {
+        ...pass,
+        secondsDiff,
+      }
+    })
+  res.json(riderResults)
 })
 
 const create = _async(async (req, res) => {
