@@ -24,7 +24,7 @@ module.exports = (app) => {
 }
 
 const leaderboard = _async(async (req, res) => {
-  const [race, enteredRiderIds] = await Promise.all([
+  const [race, enteredTransponders] = await Promise.all([
     Race.findOne({
       _id: mongoose.Types.ObjectId(req.query.raceId),
     }).exec(),
@@ -32,7 +32,11 @@ const leaderboard = _async(async (req, res) => {
       raceId: mongoose.Types.ObjectId(req.query.raceId),
     })
       .exec()
-      .then((entries) => entries.map((e) => e.riderId.toString())),
+      .then((entries) =>
+        Promise.all(entries.map((e) => Rider.findOne({ _id: e.riderId })))
+      )
+      .then((riders) => _.map(riders, 'transponder'))
+      .then((transponders) => _.compact(transponders)),
   ])
   const passings = await Passing.find({
     raceId: race._id,
@@ -45,6 +49,7 @@ const leaderboard = _async(async (req, res) => {
   const passingsByTransponder = _.chain(passings)
     .sortBy('date')
     .groupBy('transponder')
+    .pick(enteredTransponders)
     .value()
 
   // Calculate the leaderboard for a given lap number
@@ -53,7 +58,7 @@ const leaderboard = _async(async (req, res) => {
       .map((passes) => {
         const passCount = passes.length
         // The latest pass we should evaluate for the race
-        const passIndex = Math.min(passes.length - 1, lapNumber - 1)
+        const passIndex = Math.min(passCount - 1, lapNumber - 1)
         return {
           ...passes[passIndex],
           lapCount: Math.min(passCount, lapNumber),
@@ -78,24 +83,19 @@ const leaderboard = _async(async (req, res) => {
         .then((rider) => (rider ? { ...pass, riderId: rider._id } : pass))
     })
   )
-  const finalResults = _.chain(resultPasses)
-    .filter(
-      (pass) =>
-        !pass.riderId || enteredRiderIds.indexOf(pass.riderId.toString()) !== -1
-    )
-    .map((pass) => {
-      const lapLeaderboard = resultsForLap(pass.lapCount)
-      const leaderTransponder = _.first(lapLeaderboard).transponder
-      const leaderPass =
-        passingsByTransponder[leaderTransponder][pass.lapCount - 1]
-      const secondsDiff =
-        moment(pass.date).unix() - moment(leaderPass.date).unix()
-      return {
-        ...pass,
-        secondsDiff,
-      }
-    })
-    .value()
+  const finalResults = _.map(resultPasses, (pass) => {
+    if (pass.lapCount <= 1) return pass
+    const lapLeaderboard = resultsForLap(pass.lapCount)
+    const leaderTransponder = _.first(lapLeaderboard).transponder
+    const leaderPass =
+      passingsByTransponder[leaderTransponder][pass.lapCount - 1]
+    const secondsDiff =
+      moment(pass.date).unix() - moment(leaderPass.date).unix()
+    return {
+      ...pass,
+      secondsDiff,
+    }
+  })
   res.json(finalResults)
 })
 
