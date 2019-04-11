@@ -28,7 +28,7 @@
     "email-validator": "^2.0.4",
     "express": "^4.16.4",
     "jsonwebtoken": "^8.5.1",
-    "lodash.groupby": "^4.6.0",
+    "lodash": "^4.17.11",
     "moment": "^2.24.0",
     "mongoose": "^5.4.19"
   },
