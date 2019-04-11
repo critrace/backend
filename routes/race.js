@@ -53,10 +53,10 @@ const leaderboard = _async(async (req, res) => {
       .map((passes) => {
         const passCount = passes.length
         // The latest pass we should evaluate for the race
-        const passIndex = Math.min(passes.length - 1, lapNumber)
+        const passIndex = Math.min(passes.length - 1, lapNumber - 1)
         return {
           ...passes[passIndex],
-          lapCount: Math.min(passCount, race.lapCount || Number.MAX_VALUE),
+          lapCount: Math.min(passCount, lapNumber),
         }
       })
       .sortBy('date')
@@ -65,7 +65,7 @@ const leaderboard = _async(async (req, res) => {
       .reverse()
       .value()
 
-  const results = resultsForLap(race.lapCount - 1 || Number.MAX_VALUE)
+  const results = resultsForLap(race.lapCount || Number.MAX_VALUE)
   // Retroactively load associated transponders if not mapped to riderId
   const resultPasses = await Promise.all(
     results.map((pass) => {
@@ -84,7 +84,7 @@ const leaderboard = _async(async (req, res) => {
         !pass.riderId || enteredRiderIds.indexOf(pass.riderId.toString()) !== -1
     )
     .map((pass) => {
-      const lapLeaderboard = resultsForLap(pass.lapCount - 1)
+      const lapLeaderboard = resultsForLap(pass.lapCount)
       const leaderTransponder = _.first(lapLeaderboard).transponder
       const leaderPass =
         passingsByTransponder[leaderTransponder][pass.lapCount - 1]
