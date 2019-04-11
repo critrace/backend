@@ -9,8 +9,8 @@ const Rider = mongoose.model('Rider')
 const _async = require('async-express')
 const auth = require('../middleware/auth')
 const { isSeriesPromoter } = require('./series')
-const groupby = require('lodash.groupby')
 const moment = require('moment')
+const _ = require('lodash')
 
 module.exports = (app) => {
   app.get('/races', auth.notRequired, getRaces)
@@ -42,37 +42,32 @@ const leaderboard = _async(async (req, res) => {
   })
     .lean()
     .exec()
-  const passingsByTransponder = groupby(passings, 'transponder')
-  const results = Object.keys(passingsByTransponder)
-    .map((transponder) => {
-      const passes = passingsByTransponder[transponder].sort((p1, p2) => {
-        if (p1.date > p2.date) return 1
-        return -1
+  const passingsByTransponder = _.chain(passings)
+    .sortBy('date')
+    .groupBy('transponder')
+    .value()
+
+  // Calculate the leaderboard for a given lap number
+  const resultsForLap = (lapNumber) =>
+    _.chain(passingsByTransponder)
+      .map((passes) => {
+        const passCount = passes.length
+        // The latest pass we should evaluate for the race
+        const passIndex = Math.min(passes.length - 1, lapNumber)
+        return {
+          ...passes[passIndex],
+          lapCount: Math.min(passCount, race.lapCount || Number.MAX_VALUE),
+        }
       })
-      const passCount = passes.length
-      const passIndex = Math.min(
-        passes.length - 1,
-        race.lapCount - 1 || Number.MAX_VALUE
-      )
-      return {
-        ...passes[passIndex],
-        lapCount: Math.min(passCount, race.lapCount || Number.MAX_VALUE),
-      }
-    })
-    .sort((p1, p2) => {
-      if (p1.lapCount < p2.lapCount) {
-        return 1
-      } else if (p1.lapCount > p2.lapCount) {
-        return -1
-      } else if (p1.date > p2.date) {
-        return 1
-      } else if (p1.date < p2.date) {
-        return -1
-      }
-      return 0
-    })
+      .sortBy('date')
+      .reverse()
+      .sortBy('lapCount')
+      .reverse()
+      .value()
+
+  const results = resultsForLap(race.lapCount - 1 || Number.MAX_VALUE)
   // Retroactively load associated transponders if not mapped to riderId
-  const riderResults = (await Promise.all(
+  const resultPasses = await Promise.all(
     results.map((pass) => {
       if (pass.riderId) return Promise.resolve(pass)
       return Rider.findOne({
@@ -82,22 +77,26 @@ const leaderboard = _async(async (req, res) => {
         .exec()
         .then((rider) => (rider ? { ...pass, riderId: rider._id } : pass))
     })
-  ))
+  )
+  const finalResults = _.chain(resultPasses)
     .filter(
       (pass) =>
         !pass.riderId || enteredRiderIds.indexOf(pass.riderId.toString()) !== -1
     )
-    .map((pass, index, array) => {
-      const firstPass = array.slice().shift()
-      if (firstPass.lapCount !== pass.lapCount) return pass
+    .map((pass) => {
+      const lapLeaderboard = resultsForLap(pass.lapCount)
+      const leaderTransponder = _.first(lapLeaderboard).transponder
+      const leaderPass =
+        passingsByTransponder[leaderTransponder][pass.lapCount - 1]
       const secondsDiff =
-        moment(pass.date).unix() - moment(firstPass.date).unix()
+        moment(pass.date).unix() - moment(leaderPass.date).unix()
       return {
         ...pass,
         secondsDiff,
       }
     })
-  res.json(riderResults)
+    .value()
+  res.json(finalResults)
 })
 
 const create = _async(async (req, res) => {
