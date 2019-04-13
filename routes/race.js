@@ -96,7 +96,13 @@ const leaderboard = _async(async (req, res) => {
       secondsDiff,
     }
   })
-  res.json(finalResults)
+  const [leaderPass] = finalResults
+  res.json({
+    isFinished:
+      race.lapCount && leaderPass && race.lapCount <= leaderPass.lapCount,
+    leaderFinishTime: leaderPass.date,
+    passings: finalResults,
+  })
 })
 
 const create = _async(async (req, res) => {
