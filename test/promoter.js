@@ -49,6 +49,17 @@ test('create should fail with invalid password', async (t) => {
   t.pass()
 })
 
+test('create should fail with invalid email', async (t) => {
+  await supertest(app)
+    .post('/promoters')
+    .send({
+      email: 'not a valid email',
+      password: 'password',
+    })
+    .expect(400)
+  t.pass()
+})
+
 test('login should fail with invalid email', async (t) => {
   await supertest(app)
     .post('/promoters/login')
