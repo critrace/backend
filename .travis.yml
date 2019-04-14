@@ -3,3 +3,8 @@ services: docker
 language: node_js
 node_js:
   - "10"
+
+test: true
+
+script:
+  - npm run coverage
