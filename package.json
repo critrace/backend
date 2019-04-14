@@ -38,11 +38,11 @@
   "devDependencies": {
     "@jchancehud/eslint-config": "^0.0.10",
     "ava": "^1.4.1",
+    "casual": "^1.6.0",
     "coveralls": "^3.0.3",
     "dotenv": "^7.0.0",
     "eslint": "^5.16.0",
     "nyc": "^13.3.0",
-    "random-email": "^1.0.3",
     "supertest": "^4.0.2"
   }
 }
