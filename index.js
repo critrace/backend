@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+mongoose.set('useCreateIndex', true)
 require('./models/entry')
 require('./models/event')
 require('./models/race')
