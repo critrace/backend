@@ -59,3 +59,33 @@ test('should fail with invalid password', async (t) => {
     .expect(400)
   t.pass()
 })
+
+test('should load promoter by id', async (t) => {
+  const { body } = await supertest(app)
+    .post('/promoters/login')
+    .send({
+      email: TEST_EMAIL,
+      password: TEST_PASSWORD,
+    })
+    .expect(200)
+  await supertest(app)
+    .get('/promoters')
+    .query({
+      _id: body._id,
+    })
+    .expect(401)
+  await supertest(app)
+    .get('/promoters')
+    .query({
+      token: body.token,
+      _id: body._id,
+    })
+    .expect(200)
+  await supertest(app)
+    .get('/promoters')
+    .query({
+      token: body.token,
+    })
+    .expect(200)
+  t.pass()
+})
