@@ -183,3 +183,52 @@ test('should fail to create entry if not promoter', async (t) => {
     .expect(401)
   t.pass()
 })
+
+test('should get leaderboard', async (t) => {
+  const { body: rider } = await supertest(app)
+    .post('/riders')
+    .send({
+      token: t.context.promoter.token,
+      license: nanoid(),
+      licenseExpirationDate: moment().add(1, 'year'),
+      firstname: 'keith',
+      lastname: 'noot',
+      transponder: 'SSSSK23',
+    })
+    .expect(200)
+  const { body: bib } = await supertest(app)
+    .post('/bibs')
+    .send({
+      token: t.context.promoter.token,
+      seriesId: t.context.series._id,
+      riderId: rider._id,
+      bibNumber: 5001,
+    })
+    .expect(200)
+  await supertest(app)
+    .post('/races/entry')
+    .send({
+      token: t.context.promoter.token,
+      riderId: rider._id,
+      raceId: t.context.race._id,
+      bibId: bib._id,
+    })
+    .expect(200)
+  await supertest(app)
+    .post('/passings')
+    .send({
+      token: t.context.promoter.token,
+      raceId: t.context.race._id,
+      transponder: 'SSSSK23',
+      riderId: rider._id,
+      date: new Date(),
+    })
+    .expect(204)
+  await supertest(app)
+    .get('/races/leaderboard')
+    .query({
+      raceId: t.context.race._id,
+    })
+    .expect(200)
+  t.pass()
+})
