@@ -37,3 +37,25 @@ test.serial('should login with promoter', async (t) => {
     .expect(200)
   t.pass()
 })
+
+test('should fail with invalid email', async (t) => {
+  await supertest(app)
+    .post('/promoters')
+    .send({
+      email: 'this is not a valid email',
+      password: 'password',
+    })
+    .expect(400)
+  t.pass()
+})
+
+test('should fail with invalid password', async (t) => {
+  await supertest(app)
+    .post('/promoters')
+    .send({
+      email: 'valid@email.com',
+      password: 'pass',
+    })
+    .expect(400)
+  t.pass()
+})
