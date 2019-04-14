@@ -28,7 +28,7 @@ const loadPromoter = (req, res) => {
     }
     return promoter
   } catch (err) {
-    console.log('Error decoding token', err)
+    // console.log('Error decoding token', err)
     res.status(500)
     res.send(err.toString())
   }
