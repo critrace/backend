@@ -1,13 +1,12 @@
 import test from 'ava'
 import supertest from 'supertest'
 import app from '..'
-import casual from 'casual'
+import nanoid from 'nanoid'
 
 const TEST_PASSWORD = 'password'
 
 test('should create promoter', async (t) => {
-  const TEST_EMAIL = casual.email
-  console.log(TEST_EMAIL)
+  const TEST_EMAIL = `${nanoid()}@email.com`
   await supertest(app)
     .post('/promoters')
     .send({
@@ -35,7 +34,7 @@ test('should create promoter', async (t) => {
 })
 
 test('should fail to create with invalid password', async (t) => {
-  const TEST_EMAIL = casual.email
+  const TEST_EMAIL = `${nanoid()}@email.com`
   await supertest(app)
     .post('/promoters')
     .send({
@@ -69,7 +68,7 @@ test('should fail to login with invalid email', async (t) => {
 })
 
 test('should fail to login with invalid password', async (t) => {
-  const TEST_EMAIL = casual.email
+  const TEST_EMAIL = `${nanoid()}@email.com`
   await supertest(app)
     .post('/promoters')
     .send({
@@ -88,7 +87,7 @@ test('should fail to login with invalid password', async (t) => {
 })
 
 test('should load promoter by id', async (t) => {
-  const TEST_EMAIL = casual.email
+  const TEST_EMAIL = `${nanoid()}@email.com`
   const { body } = await supertest(app)
     .post('/promoters')
     .send({
