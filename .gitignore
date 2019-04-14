@@ -5,3 +5,4 @@ now-secrets.json
 *.swp
 .env
 .nyc_output
+coverage
