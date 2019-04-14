@@ -25,11 +25,6 @@ const byId = _async(async (req, res) => {
 })
 
 const create = _async(async (req, res) => {
-  if (req.body.models) {
-    const created = await Rider.create(req.body.models)
-    res.json(created)
-    return
-  }
   if (!req.body.license && !req.body.licenseExpirationDate) {
     // It's a one day, set the license expiration 1 day forward
     const licenseExpirationDate = new Date()
