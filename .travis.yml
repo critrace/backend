@@ -3,6 +3,3 @@ services: docker
 language: node_js
 node_js:
   - "10"
-
-before_install:
-  - docker run -d --rm -p 27017:27017 mongo:4.0.9-xenial
