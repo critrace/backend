@@ -89,3 +89,41 @@ test('should load promoter by id', async (t) => {
     .expect(200)
   t.pass()
 })
+
+test('should update promoter', async (t) => {
+  const UPDATE_EMAIL = 'update@email.com'
+  const DIFF_EMAIL = 'diff@email.com'
+  const { body } = await supertest(app)
+    .post('/promoters')
+    .send({
+      email: UPDATE_EMAIL,
+      password: TEST_PASSWORD,
+    })
+    .expect(200)
+  await supertest(app)
+    .put('/promoters')
+    .send({})
+    .expect(401)
+  await supertest(app)
+    .put('/promoters')
+    .send({
+      token: body.token,
+      email: DIFF_EMAIL,
+    })
+    .expect(204)
+  await supertest(app)
+    .post('/promoters/login')
+    .send({
+      email: UPDATE_EMAIL,
+      password: TEST_PASSWORD,
+    })
+    .expect(404)
+  await supertest(app)
+    .post('/promoters/login')
+    .send({
+      email: DIFF_EMAIL,
+      password: TEST_PASSWORD,
+    })
+    .expect(200)
+  t.pass()
+})
