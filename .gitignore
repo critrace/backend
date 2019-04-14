@@ -4,3 +4,4 @@ now-secrets.json
 *.tmp
 *.swp
 .env
+.nyc_output
