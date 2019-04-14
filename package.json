@@ -6,9 +6,9 @@
   "scripts": {
     "start": "node -e \"require('dotenv').config(); require('.').listen(4000);\"",
     "pretest": "docker run --name=critrace-test -d --rm -p 27017:27017 mongo:4.0.9-xenial",
-    "test": "ava",
+    "test": "nyc ava",
     "posttest": "docker kill critrace-test",
-    "coverage": "nyc npm test --reporter=lcov | coveralls"
+    "coverage": "nyc --reporter=lcov | coveralls"
   },
   "eslintConfig": {
     "extends": [
