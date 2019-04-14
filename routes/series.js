@@ -74,7 +74,7 @@ const getPromoters = _async(async (req, res) => {
 
 const addPromoter = _async(async (req, res) => {
   const promoter = await Promoter.findOne({
-    email: req.body.email,
+    email: req.body.email.toLowerCase(),
   })
     .lean()
     .exec()
