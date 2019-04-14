@@ -1,11 +1,12 @@
 import test from 'ava'
 import supertest from 'supertest'
 import app from '..'
+import randomEmail from 'random-email'
 
-const TEST_EMAIL = 'test@email.com'
 const TEST_PASSWORD = 'password'
 
-test.serial('should create promoter', async (t) => {
+test('should create promoter', async (t) => {
+  const TEST_EMAIL = randomEmail()
   await supertest(app)
     .post('/promoters')
     .send({
@@ -13,10 +14,7 @@ test.serial('should create promoter', async (t) => {
       password: TEST_PASSWORD,
     })
     .expect(200)
-  t.pass()
-})
-
-test.serial('should fail to create duplicate email', async (t) => {
+  // Should fail to create duplicate email
   await supertest(app)
     .post('/promoters')
     .send({
@@ -24,10 +22,7 @@ test.serial('should fail to create duplicate email', async (t) => {
       password: TEST_PASSWORD,
     })
     .expect(400)
-  t.pass()
-})
-
-test.serial('should login with promoter', async (t) => {
+  // Should login
   await supertest(app)
     .post('/promoters/login')
     .send({
@@ -38,40 +33,49 @@ test.serial('should login with promoter', async (t) => {
   t.pass()
 })
 
-test('create should fail with invalid password', async (t) => {
+test('should fail to create with invalid password', async (t) => {
+  const TEST_EMAIL = randomEmail()
   await supertest(app)
     .post('/promoters')
     .send({
-      email: 'valid@email.com',
+      email: TEST_EMAIL,
       password: 'pass',
     })
     .expect(400)
   t.pass()
 })
 
-test('create should fail with invalid email', async (t) => {
+test('should fail to create with invalid email', async (t) => {
   await supertest(app)
     .post('/promoters')
     .send({
       email: 'not a valid email',
-      password: 'password',
+      password: TEST_PASSWORD,
     })
     .expect(400)
   t.pass()
 })
 
-test('login should fail with invalid email', async (t) => {
+test('should fail to login with invalid email', async (t) => {
   await supertest(app)
     .post('/promoters/login')
     .send({
       email: 'this is not a valid email',
-      password: 'password',
+      password: TEST_PASSWORD,
     })
     .expect(404)
   t.pass()
 })
 
-test('login should fail with invalid password', async (t) => {
+test('should fail to login with invalid password', async (t) => {
+  const TEST_EMAIL = randomEmail()
+  await supertest(app)
+    .post('/promoters')
+    .send({
+      email: TEST_EMAIL,
+      password: TEST_PASSWORD,
+    })
+    .expect(200)
   await supertest(app)
     .post('/promoters/login')
     .send({
@@ -83,8 +87,9 @@ test('login should fail with invalid password', async (t) => {
 })
 
 test('should load promoter by id', async (t) => {
+  const TEST_EMAIL = randomEmail()
   const { body } = await supertest(app)
-    .post('/promoters/login')
+    .post('/promoters')
     .send({
       email: TEST_EMAIL,
       password: TEST_PASSWORD,

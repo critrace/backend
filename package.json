@@ -42,6 +42,7 @@
     "dotenv": "^7.0.0",
     "eslint": "^5.16.0",
     "nyc": "^13.3.0",
+    "random-email": "^1.0.3",
     "supertest": "^4.0.2"
   }
 }
