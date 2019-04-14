@@ -28,6 +28,18 @@ test.before(async (t) => {
   })
 })
 
+test('should create one day rider', async (t) => {
+  await supertest(app)
+    .post('/riders')
+    .send({
+      token: t.context.promoter.token,
+      firstname: 'tom',
+      lastname: 'willaby',
+    })
+    .expect(200)
+  t.pass()
+})
+
 test('should search for rider', async (t) => {
   const { body } = await supertest(app)
     .get('/riders/search')
@@ -35,6 +47,50 @@ test('should search for rider', async (t) => {
       search: 'john',
     })
     .expect(200)
-  t.true(body.length === 1)
+  t.true(body.length !== 0)
+  t.pass()
+})
+
+test('should update rider', async (t) => {
+  await supertest(app)
+    .put('/riders')
+    .send({
+      token: t.context.promoter.token,
+      where: {
+        _id: t.context.rider._id,
+      },
+      changes: {
+        firstname: 'jonathan',
+      },
+    })
+    .expect(204)
+  t.pass()
+})
+
+test('should fail to update rider with no where', async (t) => {
+  await supertest(app)
+    .put('/riders')
+    .send({
+      token: t.context.promoter.token,
+      changes: {
+        firstname: 'jonathan',
+      },
+    })
+    .expect(400)
+  t.pass()
+})
+
+test('should fail to update rider if not authenticated', async (t) => {
+  await supertest(app)
+    .put('/riders')
+    .send({
+      where: {
+        _id: t.context.rider._id,
+      },
+      changes: {
+        firstname: 'jonathan',
+      },
+    })
+    .expect(401)
   t.pass()
 })
