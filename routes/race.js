@@ -174,7 +174,7 @@ const start = _async(async (req, res) => {
       _id: mongoose.Types.ObjectId(req.body._id),
     },
     {
-      actualStart: req.body.actualStart,
+      actualStart: req.body.actualStart || new Date(),
     }
   )
   res.status(204).end()
