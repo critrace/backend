@@ -33,14 +33,15 @@ const create = _async(async (req, res) => {
     })
     return
   }
-  if (!emailValidator.validate(req.body.email)) {
+  const email = req.body.email.toLowerCase()
+  if (!emailValidator.validate(email)) {
     res.status(400).json({
       message: 'Invalid email supplied.',
     })
     return
   }
   const promoter = await Promoter.findOne({
-    email: req.body.email,
+    email,
   })
     .lean()
     .exec()
@@ -54,7 +55,7 @@ const create = _async(async (req, res) => {
   const passwordHash = await bcrypt.hash(req.body.password, salt)
   const { _doc } = await Promoter.create({
     ...req.body,
-    email: req.body.email.toLowerCase(),
+    email,
     passwordHash,
     createdAt: new Date(),
   })
@@ -104,8 +105,9 @@ const update = _async(async (req, res) => {
 })
 
 const login = _async(async (req, res) => {
+  const email = req.body.email.toLowerCase()
   const promoter = await Promoter.findOne({
-    email: req.body.email,
+    email,
   })
     .lean()
     .exec()
