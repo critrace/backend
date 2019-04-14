@@ -52,22 +52,22 @@ const create = _async(async (req, res) => {
   }
   const salt = await bcrypt.genSalt(10)
   const passwordHash = await bcrypt.hash(req.body.password, salt)
-  const created = await Promoter.create({
+  const { _doc } = await Promoter.create({
     ...req.body,
     email: req.body.email.toLowerCase(),
     passwordHash,
     createdAt: new Date(),
   })
   const token = jwt.sign(
-    { ...promoter, passwordHash: '' },
+    { ..._doc, passwordHash: '' },
     process.env.WEB_TOKEN_SECRET
   )
-  res.json({ ...created, token })
+  res.json({ ..._doc, token })
 })
 
 const update = _async(async (req, res) => {
   const promoter = await Promoter.findOne({
-    _id: mongoose.Types.ObjectId(req.promoter._id),
+    _id: req.promoter._id,
   }).exec()
   if (req.body.password && !req.body.oldPassword) {
     res.status(400).json({
@@ -88,15 +88,19 @@ const update = _async(async (req, res) => {
     const salt = await bcrypt.genSalt(10)
     req.body.passwordHash = await bcrypt.hash(req.body.password, salt)
   }
-  await Promoter.updateOne(
+  const { n } = await Promoter.updateOne(
     {
-      _id: mongoose.Types.ObjectId(req.promoter._id),
+      _id: req.promoter._id,
     },
     {
       ...req.body,
     }
   )
-  res.status(204).end()
+  if (n === 1) {
+    res.status(204).end()
+  } else {
+    res.status(400).end()
+  }
 })
 
 const login = _async(async (req, res) => {
@@ -106,7 +110,7 @@ const login = _async(async (req, res) => {
     .lean()
     .exec()
   if (!promoter) {
-    res.status(400).json({
+    res.status(404).json({
       message: 'This email is not registered.',
     })
     return
