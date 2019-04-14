@@ -44,7 +44,7 @@ test('should search for rider', async (t) => {
   const { body } = await supertest(app)
     .get('/riders/search')
     .query({
-      search: 'john',
+      search: 'jo',
     })
     .expect(200)
   t.true(body.length !== 0)
