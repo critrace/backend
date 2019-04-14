@@ -20,6 +20,11 @@ app.use((req, res, next) => {
   next()
 })
 
+if (process.env.NODE_ENV === 'test') {
+  process.env.WEB_TOKEN_SECRET = 'secret'
+  process.env.DB_URI = 'mongodb://127.0.0.1:27017/test'
+}
+
 const mongoConnect = _async(async (req, res, next) => {
   await mongoose.connect(process.env.DB_URI, {
     connectTimeoutMS: 5000,
@@ -46,6 +51,8 @@ require('./routes/series')(app)
 require('./routes/bib')(app)
 require('./routes/passing')(app)
 
-app.use(mongoDisconnect)
+if (process.env.NODE_ENV !== 'test') {
+  app.use(mongoDisconnect)
+}
 
 module.exports = app
