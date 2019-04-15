@@ -140,17 +140,30 @@ test('should fail to delete passing if not series promoter', async (t) => {
       password: 'password',
     })
     .expect(200)
+  const transponder = nanoid()
+  await supertest(app)
+    .post('/passings')
+    .send({
+      token: t.context.promoter.token,
+      transponder,
+      date: new Date(),
+      raceId: t.context.race._id,
+    })
+    .expect(204)
   const { body: passings } = await supertest(app)
     .get('/passings')
     .query({
       raceId: t.context.race._id,
     })
     .expect(200)
+  const passing = passings.find(
+    (passing) => passing.transponder === transponder
+  )
   await supertest(app)
     .delete('/passings')
     .send({
       token: promoter.token,
-      _id: passings[0]._id,
+      _id: passing._id,
     })
     .expect(401)
   t.pass()
