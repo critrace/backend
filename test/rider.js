@@ -94,3 +94,15 @@ test('should fail to update rider if not authenticated', async (t) => {
     .expect(401)
   t.pass()
 })
+
+test('should load multiple riders', async (t) => {
+  const { body: riders } = await supertest(app)
+    .post('/riders/byId')
+    .send({
+      _ids: [t.context.rider._id],
+    })
+    .expect(200)
+  t.true(riders[0]._id === t.context.rider._id)
+  t.true(riders.length === 1)
+  t.pass()
+})
