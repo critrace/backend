@@ -232,3 +232,23 @@ test('should get leaderboard', async (t) => {
     .expect(200)
   t.pass()
 })
+
+test('should delete a race', async (t) => {
+  const { body: race } = await supertest(app)
+    .post('/races')
+    .send({
+      token: t.context.promoter.token,
+      name: 'A Test Race',
+      eventId: t.context.event._id,
+      scheduledStartTime: '15:00',
+    })
+    .expect(200)
+  await supertest(app)
+    .delete('/races')
+    .send({
+      token: t.context.promoter.token,
+      _id: race._id,
+    })
+    .expect(204)
+  t.pass()
+})
