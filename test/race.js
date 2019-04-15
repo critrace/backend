@@ -225,6 +225,7 @@ test('should fail to create entry if not promoter', async (t) => {
 })
 
 test('should get leaderboard', async (t) => {
+  const transponder = nanoid()
   const { body: rider } = await supertest(app)
     .post('/riders')
     .send({
@@ -233,7 +234,7 @@ test('should get leaderboard', async (t) => {
       licenseExpirationDate: moment().add(1, 'year'),
       firstname: 'keith',
       lastname: 'noot',
-      transponder: 'SSSSK23',
+      transponder,
     })
     .expect(200)
   const { body: bib } = await supertest(app)
@@ -261,7 +262,7 @@ test('should get leaderboard', async (t) => {
       .send({
         token: t.context.promoter.token,
         raceId: t.context.race._id,
-        transponder: 'SSSSK23',
+        transponder,
         riderId: rider._id,
         date: moment().add(x, 'minutes'),
       })
