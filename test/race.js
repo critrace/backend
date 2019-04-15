@@ -254,16 +254,19 @@ test('should get leaderboard', async (t) => {
       bibId: bib._id,
     })
     .expect(200)
-  await supertest(app)
-    .post('/passings')
-    .send({
-      token: t.context.promoter.token,
-      raceId: t.context.race._id,
-      transponder: 'SSSSK23',
-      riderId: rider._id,
-      date: new Date(),
-    })
-    .expect(204)
+  // Add 5 laps
+  for (let x = 0; x < 5; x += 1) {
+    await supertest(app)
+      .post('/passings')
+      .send({
+        token: t.context.promoter.token,
+        raceId: t.context.race._id,
+        transponder: 'SSSSK23',
+        riderId: rider._id,
+        date: moment().add(x, 'minutes'),
+      })
+      .expect(204)
+  }
   await supertest(app)
     .get('/races/leaderboard')
     .query({
