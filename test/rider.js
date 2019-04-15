@@ -51,6 +51,25 @@ test('should search for rider', async (t) => {
   t.pass()
 })
 
+test('should load rider', async (t) => {
+  await supertest(app)
+    .get('/riders')
+    .expect(200)
+  await supertest(app)
+    .get('/riders')
+    .query({
+      _id: t.context.rider._id,
+    })
+    .expect(200)
+  await supertest(app)
+    .get('/riders')
+    .query({
+      license: t.context.rider.license,
+    })
+    .expect(200)
+  t.pass()
+})
+
 test('should update rider', async (t) => {
   await supertest(app)
     .put('/riders')
