@@ -9,7 +9,7 @@
     "test": "nyc ava",
     "posttest": "docker kill critrace-test",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
-    "deploy": "now switch critresult -t $NOW_TOKEN && now --target production -t $NOW_TOKEN && now alias -t $NOW_TOKEN"
+    "deploy": "now --target production -t $NOW_TOKEN --scope critresult"
   },
   "eslintConfig": {
     "extends": [
