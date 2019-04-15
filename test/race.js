@@ -166,6 +166,46 @@ test('should create entry', async (t) => {
   t.pass()
 })
 
+test('should delete entry', async (t) => {
+  const { body: rider } = await supertest(app)
+    .post('/riders')
+    .send({
+      token: t.context.promoter.token,
+      license: nanoid(),
+      licenseExpirationDate: moment().add(1, 'year'),
+      firstname: 'will',
+      lastname: 'guy',
+    })
+    .expect(200)
+  const { body: bib } = await supertest(app)
+    .post('/bibs')
+    .send({
+      token: t.context.promoter.token,
+      seriesId: t.context.series._id,
+      riderId: rider._id,
+      bibNumber: 5001,
+    })
+    .expect(200)
+  await supertest(app)
+    .post('/races/entry')
+    .send({
+      token: t.context.promoter.token,
+      raceId: t.context.race._id,
+      riderId: rider._id,
+      bibId: bib._id,
+    })
+    .expect(200)
+  await supertest(app)
+    .delete('/races/entries')
+    .send({
+      token: t.context.promoter.token,
+      raceId: t.context.race._id,
+      riderId: rider._id,
+    })
+    .expect(204)
+  t.pass()
+})
+
 test('should fail to create entry if not promoter', async (t) => {
   const { body: promoter } = await supertest(app)
     .post('/promoters')
