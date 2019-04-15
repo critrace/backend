@@ -154,3 +154,30 @@ test('should update promoter', async (t) => {
     .expect(200)
   t.pass()
 })
+
+test('should update promoter password', async (t) => {
+  const { body: promoter } = await supertest(app)
+    .post('/promoters')
+    .send({
+      email: `${nanoid()}@email.com`,
+      password: 'password',
+    })
+    .expect(200)
+  await supertest(app)
+    .put('/promoters')
+    .send({
+      token: promoter.token,
+      _id: promoter._id,
+      oldPassword: 'password',
+      password: 'new_password',
+    })
+    .expect(204)
+  await supertest(app)
+    .post('/promoters/login')
+    .send({
+      email: promoter.email,
+      password: 'new_password',
+    })
+    .expect(200)
+  t.pass()
+})
