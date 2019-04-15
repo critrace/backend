@@ -209,3 +209,82 @@ test('should fail to delete non-existent bib', async (t) => {
     .expect(404)
   t.pass()
 })
+
+test('should update bib number', async (t) => {
+  const { body: rider } = await supertest(app)
+    .post('/riders')
+    .send({
+      token: t.context.promoter.token,
+      license: nanoid(),
+      licenseExpirationDate: moment().add(1, 'year'),
+      firstname: 'test',
+      lastname: 'test',
+      transponder: nanoid(),
+    })
+    .expect(200)
+  const { body: bib } = await supertest(app)
+    .post('/bibs')
+    .send({
+      token: t.context.promoter.token,
+      seriesId: t.context.series._id,
+      riderId: rider._id,
+      bibNumber: 201,
+    })
+    .expect(200)
+  await supertest(app)
+    .put('/bibs')
+    .send({
+      token: t.context.promoter.token,
+      where: {
+        _id: bib._id,
+      },
+      changes: {
+        bibNumber: 202,
+      },
+    })
+    .expect(204)
+  t.pass()
+})
+
+test('should fail to update bib if not series promoter', async (t) => {
+  const { body: rider } = await supertest(app)
+    .post('/riders')
+    .send({
+      token: t.context.promoter.token,
+      license: nanoid(),
+      licenseExpirationDate: moment().add(1, 'year'),
+      firstname: 'test',
+      lastname: 'test',
+      transponder: nanoid(),
+    })
+    .expect(200)
+  const { body: bib } = await supertest(app)
+    .post('/bibs')
+    .send({
+      token: t.context.promoter.token,
+      seriesId: t.context.series._id,
+      riderId: rider._id,
+      bibNumber: 203,
+    })
+    .expect(200)
+  const { body: promoter } = await supertest(app)
+    .post('/promoters')
+    .send({
+      email: `${nanoid()}@email.com`,
+      password: 'password',
+    })
+    .expect(200)
+  await supertest(app)
+    .put('/bibs')
+    .send({
+      token: promoter.token,
+      where: {
+        _id: bib._id,
+      },
+      changes: {
+        bibNumber: 204,
+      },
+    })
+    .expect(401)
+  t.pass()
+})
