@@ -8,7 +8,8 @@
     "pretest": "docker run --name=critrace-test -d --rm -p 27017:27017 mongo:4.0.9-xenial",
     "test": "nyc ava",
     "posttest": "docker kill critrace-test",
-    "coverage": "nyc report --reporter=text-lcov | coveralls"
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "deploy": "now --target production -t $NOW_TOKEN && now alias -t $NOW_TOKEN"
   },
   "eslintConfig": {
     "extends": [
