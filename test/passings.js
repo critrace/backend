@@ -103,11 +103,12 @@ test('should fail to create passing if not series promoter', async (t) => {
 })
 
 test('should delete passing', async (t) => {
+  const transponder = nanoid()
   await supertest(app)
     .post('/passings')
     .send({
       token: t.context.promoter.token,
-      transponder: nanoid(),
+      transponder,
       date: new Date(),
       raceId: t.context.race._id,
     })
@@ -118,11 +119,14 @@ test('should delete passing', async (t) => {
       raceId: t.context.race._id,
     })
     .expect(200)
+  const passing = passings.find(
+    (passing) => passing.transponder === transponder
+  )
   await supertest(app)
     .delete('/passings')
     .send({
       token: t.context.promoter.token,
-      _id: passings[0]._id,
+      _id: passing._id,
     })
     .expect(204)
   t.pass()
