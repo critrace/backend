@@ -4,17 +4,9 @@ language: node_js
 node_js:
   - "10"
 
-jobs:
-  include:
-    - stage: test
-      script:
-        - npm test
-        - npm run coverage
-    - stage: deploy
-      script:
-        - npm run deploy
+script:
+  - npm test
+  - npm run coverage
 
-stages:
-  - test
-  - name: deploy
-    if: branch = master
+after_success:
+  - test "$TRAVIS_BRANCH" = "master" && npm run deploy
