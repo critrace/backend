@@ -15,6 +15,9 @@
       "@jchancehud/eslint-config"
     ]
   },
+  "nyc": {
+    "exclude": "index.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/critrace/backend.git"
