@@ -5,9 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node -e \"require('dotenv').config(); require('.').listen(4000);\"",
-    "pretest": "docker run --name=critrace-test -d --rm -p 27017:27017 mongo:4.0.9-xenial",
-    "test": "nyc ava || npm run posttest",
-    "posttest": "docker kill critrace-test",
+    "pretest": "docker kill critrace-test || true && docker run --name=critrace-test -d --rm -p 27017:27017 mongo:4.0.9-xenial",
+    "test": "nyc ava",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "deploy": "now --target production -t $NOW_TOKEN --scope critresult"
   },
@@ -45,7 +44,7 @@
     "nanoid": "^2.0.1",
     "now": "^15.0.4",
     "nyc": "^13.3.0",
-    "random-objectid": "0.0.2",
+    "random-objectid": "0.0.3",
     "supertest": "^4.0.2"
   }
 }
