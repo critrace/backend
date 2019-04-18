@@ -5,11 +5,6 @@ import nanoid from 'nanoid'
 import { createPromoter } from './api'
 import randomObjectId from 'random-objectid'
 
-test.before(async (t) => {
-  const { body: promoter } = await createPromoter()
-  t.context.promoter = promoter
-})
-
 test('should create promoter', async (t) => {
   await createPromoter()
   t.pass()
