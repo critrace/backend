@@ -338,8 +338,10 @@ test('should fail to create entry if not promoter', async (t) => {
 
 test('should get leaderboard', async (t) => {
   const { token } = t.context.promoter
-  const { body: rider } = await createRider(token)
   const transponder = nanoid()
+  const { body: rider } = await createRider(token, {
+    transponder,
+  })
   const { body: series } = await createSeries(token)
   const { body: event } = await createEvent(token, {
     seriesId: series._id,
