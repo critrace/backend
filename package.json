@@ -16,7 +16,7 @@
     ]
   },
   "nyc": {
-    "exclude": "index.js"
+    "include": ["routes/*.js", "models/*.js", "middleware/*.js"]
   },
   "repository": {
     "type": "git",
