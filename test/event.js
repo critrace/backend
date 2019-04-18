@@ -2,7 +2,7 @@ import test from 'ava'
 import supertest from 'supertest'
 import app from '..'
 import randomObjectId from 'random-objectid'
-import { createPromoter, createSeries, createEvent } from './api'
+import { createRace, createPromoter, createSeries, createEvent } from './api'
 
 test.before(async (t) => {
   const { body: promoter } = await createPromoter()
@@ -49,13 +49,15 @@ test('should delete event', async (t) => {
   const { body: event } = await createEvent(token, {
     seriesId: series._id,
   })
+  await createRace(token, {
+    eventId: event._id,
+  })
   await supertest(app)
     .delete('/events')
     .send({
       token,
       _id: event._id,
     })
-    .expect(204)
   t.pass()
 })
 
