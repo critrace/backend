@@ -1,118 +1,17 @@
 import test from 'ava'
 import supertest from 'supertest'
 import app from '..'
-import nanoid from 'nanoid'
-import moment from 'moment'
 import randomObjectId from 'random-objectid'
-
-const createPromoter = async (token, body = {}) =>
-  supertest(app)
-    .post('/promoters')
-    .send(
-      Object.assign(
-        {
-          token,
-          email: `${nanoid()}@email.com`,
-          password: 'password',
-        },
-        body
-      )
-    )
-
-const createSeries = async (token, body = {}) =>
-  supertest(app)
-    .post('/series')
-    .send(
-      Object.assign(
-        {
-          token,
-          name: nanoid(),
-        },
-        body
-      )
-    )
-
-const createEvent = async (token, body = {}) =>
-  supertest(app)
-    .post('/events')
-    .send(
-      Object.assign(
-        {
-          token,
-          name: nanoid(),
-          startDate: new Date(),
-        },
-        body
-      )
-    )
-
-const createRace = async (token, body = {}) =>
-  supertest(app)
-    .post('/races')
-    .send(
-      Object.assign(
-        {
-          token,
-          name: nanoid(),
-          scheduledStartTime: '00:00',
-        },
-        body
-      )
-    )
-
-const createEntry = async (token, body = {}) =>
-  supertest(app)
-    .post('/entry')
-    .send(
-      Object.assign(
-        {
-          token,
-        },
-        body
-      )
-    )
-
-const createRider = async (token, body = {}) =>
-  supertest(app)
-    .post('/riders')
-    .send(
-      Object.assign(
-        {
-          token,
-          license: nanoid(),
-          licenseExpirationDate: moment().add(1, 'year'),
-          firstname: nanoid(),
-          lastname: nanoid(),
-          transponder: nanoid(),
-        },
-        body
-      )
-    )
-
-const createBib = async (token, body = {}) =>
-  supertest(app)
-    .post('/bibs')
-    .send(
-      Object.assign(
-        {
-          token,
-          bibNumber: Math.floor(Math.random() * 1000),
-        },
-        body
-      )
-    )
-
-const getBibs = async (token, query = {}) =>
-  supertest(app)
-    .get('/bibs')
-    .query(
-      Object.assign(
-        {
-          token,
-        },
-        query
-      )
-    )
+import {
+  createPromoter,
+  createSeries,
+  createRider,
+  createRace,
+  createBib,
+  getBibs,
+  createEvent,
+  deleteBib,
+} from './api'
 
 test.before(async (t) => {
   const { body: promoter } = await createPromoter(app)
@@ -174,11 +73,10 @@ test('should load bib by id', async (t) => {
     seriesId: series._id,
     riderId: rider._id,
   })
-  await supertest(app)
-    .get('/bibs')
-    .query({
-      _id: bib._id,
-    })
+  const { body: loadedBib } = await getBibs(undefined, {
+    _id: bib._id,
+  })
+  t.true(loadedBib._id === bib._id)
   t.pass()
 })
 
@@ -190,12 +88,9 @@ test('should delete bib by id', async (t) => {
     seriesId: series._id,
     riderId: rider._id,
   })
-  await supertest(app)
-    .delete('/bibs')
-    .send({
-      token,
-      _id: bib._id,
-    })
+  await deleteBib(token, {
+    _id: bib._id,
+  })
   t.pass()
 })
 
@@ -208,25 +103,17 @@ test('should fail to delete bib if not promoter', async (t) => {
     seriesId: series._id,
     riderId: rider._id,
   })
-  await supertest(app)
-    .delete('/bibs')
-    .send({
-      token,
-      _id: bib._id,
-    })
-    .expect(401)
+  await deleteBib(token, {
+    _id: bib._id,
+  }).expect(401)
   t.pass()
 })
 
 test('should fail to delete non-existent bib', async (t) => {
   const { token } = t.context.promoter
-  await supertest(app)
-    .delete('/bibs')
-    .send({
-      token,
-      _id: await randomObjectId(),
-    })
-    .expect(404)
+  await deleteBib(token, {
+    _id: await randomObjectId(),
+  }).expect(404)
   t.pass()
 })
 
