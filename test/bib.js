@@ -22,10 +22,55 @@ test('should create a bib', async (t) => {
   const { token } = t.context.promoter
   const { body: series } = await createSeries(token)
   const { body: rider } = await createRider(token)
-  await createBib(t.context.promoter.token, {
+  await createBib(token, {
     seriesId: series._id,
     riderId: rider._id,
   })
+  t.pass()
+})
+
+test('should fail to create duplicate bib for rider', async (t) => {
+  const { token } = t.context.promoter
+  const { body: series } = await createSeries(token)
+  const { body: rider } = await createRider(token)
+  await createBib(token, {
+    seriesId: series._id,
+    riderId: rider._id,
+  })
+  await createBib(token, {
+    seriesId: series._id,
+    riderId: rider._id,
+  }).expect(400)
+  t.pass()
+})
+
+test('should fail to create bib if not promoter', async (t) => {
+  const { token } = t.context.promoter
+  const { body: promoter } = await createPromoter(token)
+  const { body: series } = await createSeries(token)
+  const { body: rider } = await createRider(token)
+  await createBib(promoter.token, {
+    riderId: rider._id,
+    seriesId: series._id,
+  }).expect(401)
+  t.pass()
+})
+
+test('should fail to create bib if number is used', async (t) => {
+  const { token } = t.context.promoter
+  const { body: series } = await createSeries(token)
+  const { body: rider } = await createRider(token)
+  const { body: rider2 } = await createRider(token)
+  await createBib(token, {
+    riderId: rider._id,
+    seriesId: series._id,
+    bibNumber: 1,
+  })
+  await createBib(token, {
+    riderId: rider2._id,
+    seriesId: series._id,
+    bibNumber: 1,
+  }).expect(400)
   t.pass()
 })
 
@@ -62,6 +107,14 @@ test('should load bibs for race', async (t) => {
     raceId: race._id,
   })
   t.true(bibs.length === 1)
+  t.pass()
+})
+
+test('should fail to load bibs for bad race id', async (t) => {
+  const { token } = t.context.promoter
+  await getBibs(token, {
+    raceId: await randomObjectId(),
+  }).expect(400)
   t.pass()
 })
 
