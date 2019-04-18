@@ -30,6 +30,43 @@ test('should create passing', async (t) => {
   t.pass()
 })
 
+test('should not create duplicate passing', async (t) => {
+  const { token } = t.context.promoter
+  const { body: series } = await createSeries(token)
+  const { body: event } = await createEvent(token, {
+    seriesId: series._id,
+  })
+  const { body: race } = await createRace(token, {
+    eventId: event._id,
+  })
+  const transponder = nanoid()
+  const date = new Date()
+  await supertest(app)
+    .post('/passings')
+    .send({
+      token,
+      transponder,
+      date,
+      raceId: race._id,
+    })
+  await supertest(app)
+    .post('/passings')
+    .send({
+      token,
+      transponder,
+      date,
+      raceId: race._id,
+    })
+  const { body: passings } = await supertest(app)
+    .get('/passings')
+    .query({
+      token,
+      raceId: race._id,
+    })
+  t.true(passings.length === 1)
+  t.pass()
+})
+
 test('should fail to create passing for non-existant race', async (t) => {
   await supertest(app)
     .post('/passings')
@@ -97,6 +134,18 @@ test('should delete passing', async (t) => {
       token,
       _id: passing._id,
     })
+  t.pass()
+})
+
+test('should fail to delete non-existant passing', async (t) => {
+  const { token } = t.context.promoter
+  await supertest(app)
+    .delete('/passings')
+    .send({
+      token,
+      _id: await randomObjectId(),
+    })
+    .expect(404)
   t.pass()
 })
 
