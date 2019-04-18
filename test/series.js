@@ -2,52 +2,43 @@ import test from 'ava'
 import supertest from 'supertest'
 import app from '..'
 import nanoid from 'nanoid'
+import { createPromoter, createSeries } from './api'
 
 test.before(async (t) => {
-  const TEST_EMAIL = `${nanoid()}@email.com`
-  const { body } = await supertest(app)
-    .post('/promoters')
-    .send({
-      email: TEST_EMAIL,
-      password: 'password',
-    })
-    .expect(200)
-  const { body: series } = await supertest(app)
-    .post('/series')
-    .send({
-      token: body.token,
-      name: 'The Test Series',
-    })
-    .expect(200)
-  t.context.promoter = body
-  t.context.series = series
+  const { body: promoter } = await createPromoter()
+  t.context.promoter = promoter
 })
 
 test('should create series', async (t) => {
-  await supertest(app)
-    .post('/series')
-    .send({
-      token: t.context.promoter.token,
-      name: 'test series',
-    })
-    .expect(200)
+  const { token } = t.context.promoter
+  await createSeries(token)
   t.pass()
 })
 
 test('should load series', async (t) => {
-  await supertest(app)
+  await supertest(app).get('/series')
+  t.pass()
+})
+
+test('should load series by id', async (t) => {
+  const { token } = t.context.promoter
+  const { body: series } = await createSeries(token)
+  const { body } = await supertest(app)
     .get('/series')
-    .expect(200)
+    .query({
+      _id: series._id,
+    })
+  t.true(series._id === body._id)
   t.pass()
 })
 
 test('should load own series', async (t) => {
+  const { token } = t.context.promoter
   await supertest(app)
     .get('/series/authenticated')
     .query({
-      token: t.context.promoter.token,
+      token,
     })
-    .expect(200)
   t.pass()
 })
 
@@ -59,49 +50,40 @@ test('should fail to load own series', async (t) => {
 })
 
 test('should get series promoters', async (t) => {
-  const { body } = await supertest(app)
-    .post('/series')
-    .send({
-      token: t.context.promoter.token,
-      name: 'test series',
-    })
-    .expect(200)
-  const { body: body2 } = await supertest(app)
+  const { token } = t.context.promoter
+  const { body: series } = await createSeries(token)
+  const { body: promoters } = await supertest(app)
     .get('/series/promoters')
     .query({
-      token: t.context.promoter.token,
-      seriesId: body._id,
+      token,
+      seriesId: series._id,
     })
-    .expect(200)
-  t.true(body2.length === 1)
+  t.true(promoters.length === 1)
   t.pass()
 })
 
 test('should add promoter to series', async (t) => {
-  const { body } = await supertest(app)
-    .post('/promoters')
-    .send({
-      email: `${nanoid()}@email.com`,
-      password: 'password',
-    })
-    .expect(200)
+  const { token } = t.context.promoter
+  const { body: promoter } = await createPromoter()
+  const { body: series } = await createSeries(token)
   await supertest(app)
     .post('/series/invite')
     .send({
-      token: t.context.promoter.token,
-      seriesId: t.context.series._id,
-      email: body.email,
+      token,
+      seriesId: series._id,
+      email: promoter.email,
     })
-    .expect(204)
   t.pass()
 })
 
 test('should fail to add non-existing promoter', async (t) => {
+  const { token } = t.context.promoter
+  const { body: series } = await createSeries(token)
   await supertest(app)
     .post('/series/invite')
     .send({
-      token: t.context.promoter.token,
-      seriesId: t.context.series._id,
+      token,
+      seriesId: series._id,
       email: `${nanoid()}@email.com`,
     })
     .expect(404)
@@ -109,19 +91,15 @@ test('should fail to add non-existing promoter', async (t) => {
 })
 
 test('should fail to add if not series promoter', async (t) => {
-  const { body } = await supertest(app)
-    .post('/promoters')
-    .send({
-      email: `${nanoid()}@email.com`,
-      password: 'password',
-    })
-    .expect(200)
+  const { token } = t.context.promoter
+  const { body: promoter } = await createPromoter()
+  const { body: series } = await createSeries(token)
   await supertest(app)
     .post('/series/invite')
     .send({
-      token: body.token,
-      seriesId: t.context.series._id,
-      email: body.email,
+      token: promoter.token,
+      seriesId: series._id,
+      email: promoter.email,
     })
     .expect(401)
   t.pass()
