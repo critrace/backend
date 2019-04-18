@@ -2,57 +2,55 @@ import test from 'ava'
 import supertest from 'supertest'
 import app from '..'
 import nanoid from 'nanoid'
+import { createPromoter } from './api'
+import randomObjectId from 'random-objectid'
 
-const TEST_PASSWORD = 'password'
+test.before(async (t) => {
+  const { body: promoter } = await createPromoter()
+  t.context.promoter = promoter
+})
 
 test('should create promoter', async (t) => {
-  const TEST_EMAIL = `${nanoid()}@email.com`
-  await supertest(app)
-    .post('/promoters')
-    .send({
-      email: TEST_EMAIL,
-      password: TEST_PASSWORD,
-    })
-    .expect(200)
+  await createPromoter()
+  t.pass()
+})
+
+test('should fail to create promoter with existing email', async (t) => {
+  const email = `${nanoid()}@email.com`
+  await createPromoter(undefined, {
+    email,
+  })
   // Should fail to create duplicate email
-  await supertest(app)
-    .post('/promoters')
-    .send({
-      email: TEST_EMAIL,
-      password: TEST_PASSWORD,
-    })
-    .expect(400)
-  // Should login
+  await createPromoter(undefined, {
+    email,
+  }).expect(400)
+  t.pass()
+})
+
+test('should login', async (t) => {
+  const { body: promoter } = await createPromoter()
+  const { token } = promoter
   await supertest(app)
     .post('/promoters/login')
     .send({
-      email: TEST_EMAIL,
-      password: TEST_PASSWORD,
+      token,
+      email: promoter.email,
+      password: 'password',
     })
-    .expect(200)
   t.pass()
 })
 
 test('should fail to create with invalid password', async (t) => {
-  const TEST_EMAIL = `${nanoid()}@email.com`
-  await supertest(app)
-    .post('/promoters')
-    .send({
-      email: TEST_EMAIL,
-      password: 'pass',
-    })
-    .expect(400)
+  await createPromoter(undefined, {
+    password: 'pass',
+  }).expect(400)
   t.pass()
 })
 
 test('should fail to create with invalid email', async (t) => {
-  await supertest(app)
-    .post('/promoters')
-    .send({
-      email: 'not a valid email',
-      password: TEST_PASSWORD,
-    })
-    .expect(400)
+  await createPromoter(undefined, {
+    email: 'not a valid email',
+  }).expect(400)
   t.pass()
 })
 
@@ -61,25 +59,18 @@ test('should fail to login with invalid email', async (t) => {
     .post('/promoters/login')
     .send({
       email: 'this is not a valid email',
-      password: TEST_PASSWORD,
+      password: 'password',
     })
     .expect(404)
   t.pass()
 })
 
 test('should fail to login with invalid password', async (t) => {
-  const TEST_EMAIL = `${nanoid()}@email.com`
-  await supertest(app)
-    .post('/promoters')
-    .send({
-      email: TEST_EMAIL,
-      password: TEST_PASSWORD,
-    })
-    .expect(200)
+  const { body: promoter } = await createPromoter()
   await supertest(app)
     .post('/promoters/login')
     .send({
-      email: TEST_EMAIL,
+      email: promoter.email,
       password: 'pass',
     })
     .expect(401)
@@ -87,46 +78,44 @@ test('should fail to login with invalid password', async (t) => {
 })
 
 test('should load promoter by id', async (t) => {
-  const TEST_EMAIL = `${nanoid()}@email.com`
-  const { body } = await supertest(app)
-    .post('/promoters')
-    .send({
-      email: TEST_EMAIL,
-      password: TEST_PASSWORD,
-    })
-    .expect(200)
+  const { body: promoter } = await createPromoter()
+  const { token } = promoter
   await supertest(app)
     .get('/promoters')
     .query({
-      _id: body._id,
+      _id: promoter._id,
     })
     .expect(401)
   await supertest(app)
     .get('/promoters')
     .query({
-      token: body.token,
-      _id: body._id,
+      token,
+      _id: promoter._id,
     })
-    .expect(200)
   await supertest(app)
     .get('/promoters')
     .query({
-      token: body.token,
+      token,
     })
-    .expect(200)
   t.pass()
 })
 
-test('should update promoter', async (t) => {
-  const UPDATE_EMAIL = 'update@email.com'
-  const DIFF_EMAIL = 'diff@email.com'
-  const { body } = await supertest(app)
-    .post('/promoters')
-    .send({
-      email: UPDATE_EMAIL,
-      password: TEST_PASSWORD,
+test('should fail to load invalid promoter', async (t) => {
+  const { body: promoter } = await createPromoter()
+  const { token } = promoter
+  await supertest(app)
+    .get('/promoters')
+    .query({
+      token,
+      _id: await randomObjectId(),
     })
-    .expect(200)
+    .expect(404)
+  t.pass()
+})
+
+test('should update promoter email', async (t) => {
+  const UPDATE_EMAIL = 'update@email.com'
+  const { body: promoter } = await createPromoter()
   await supertest(app)
     .put('/promoters')
     .send({})
@@ -134,35 +123,54 @@ test('should update promoter', async (t) => {
   await supertest(app)
     .put('/promoters')
     .send({
-      token: body.token,
-      email: DIFF_EMAIL,
+      token: promoter.token,
+      email: UPDATE_EMAIL,
     })
-    .expect(204)
   await supertest(app)
     .post('/promoters/login')
     .send({
-      email: UPDATE_EMAIL,
-      password: TEST_PASSWORD,
+      email: promoter.email,
+      password: 'password',
     })
     .expect(404)
   await supertest(app)
     .post('/promoters/login')
     .send({
-      email: DIFF_EMAIL,
-      password: TEST_PASSWORD,
+      email: UPDATE_EMAIL,
+      password: 'password',
     })
-    .expect(200)
+  t.pass()
+})
+
+test('should fail to update password if no oldPassword', async (t) => {
+  const { body: promoter } = await createPromoter()
+  await supertest(app)
+    .put('/promoters')
+    .send({
+      token: promoter.token,
+      _id: promoter._id,
+      password: 'new_password',
+    })
+    .expect(400)
+  t.pass()
+})
+
+test('should fail to update password if oldPassword is invalid', async (t) => {
+  const { body: promoter } = await createPromoter()
+  await supertest(app)
+    .put('/promoters')
+    .send({
+      token: promoter.token,
+      _id: promoter._id,
+      oldPassword: 'not the password',
+      password: 'new_password',
+    })
+    .expect(401)
   t.pass()
 })
 
 test('should update promoter password', async (t) => {
-  const { body: promoter } = await supertest(app)
-    .post('/promoters')
-    .send({
-      email: `${nanoid()}@email.com`,
-      password: 'password',
-    })
-    .expect(200)
+  const { body: promoter } = await createPromoter()
   await supertest(app)
     .put('/promoters')
     .send({
@@ -171,13 +179,11 @@ test('should update promoter password', async (t) => {
       oldPassword: 'password',
       password: 'new_password',
     })
-    .expect(204)
   await supertest(app)
     .post('/promoters/login')
     .send({
       email: promoter.email,
       password: 'new_password',
     })
-    .expect(200)
   t.pass()
 })
