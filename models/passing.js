@@ -18,9 +18,13 @@ const PassingSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       required: true,
     },
-    raceId: {
+    eventId: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
+    },
+    raceId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: false,
     },
   },
   {
@@ -35,9 +39,9 @@ PassingSchema.virtual('rider', {
   justOne: true,
 })
 
-PassingSchema.virtual('race', {
-  ref: 'Race',
-  localField: 'raceId',
+PassingSchema.virtual('event', {
+  ref: 'Event',
+  localField: 'eventId',
   foreignField: '_id',
   justOne: true,
 })

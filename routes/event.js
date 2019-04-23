@@ -2,12 +2,14 @@ const mongoose = require('mongoose')
 const Event = mongoose.model('Event')
 const Race = mongoose.model('Race')
 const Entry = mongoose.model('Entry')
+const SeriesPromoter = mongoose.model('SeriesPromoter')
 const _async = require('async-express')
 const auth = require('../middleware/auth')
 const { isSeriesPromoter } = require('./series')
+const _ = require('lodash')
 
 module.exports = (app) => {
-  app.get('/events', getEvent)
+  app.get('/events', auth.notRequired, getEvent)
   app.get('/events/home', homeEvents)
   app.post('/events', auth, create)
   app.delete('/events', auth, deleteEvent)
@@ -49,7 +51,25 @@ const getEvent = _async(async (req, res) => {
     res.json(events)
     return
   }
-  res.status(204).end()
+  if (!req.promoter) {
+    res.status(401).json({
+      message: 'Authenticate to retrieve owned events',
+    })
+    return
+  }
+  const seriesPromoters = await SeriesPromoter.find({
+    promoterId: req.promoter._id,
+  }).exec()
+  if (seriesPromoters.length === 0) return res.json([])
+  const events = await Event.find({
+    $or: _.map(seriesPromoters, (seriesPromoter) => ({
+      seriesId: seriesPromoter.seriesId,
+    })),
+  })
+    .populate('series')
+    .lean()
+    .exec()
+  res.json(events)
 })
 
 const homeEvents = _async(async (req, res) => {

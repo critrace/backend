@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 const Passing = mongoose.model('Passing')
-const Race = mongoose.model('Race')
+const Event = mongoose.model('Event')
 const Rider = mongoose.model('Rider')
 const SeriesPromoter = mongoose.model('SeriesPromoter')
 const _async = require('async-express')
@@ -13,31 +13,31 @@ module.exports = (app) => {
 }
 
 const create = _async(async (req, res) => {
-  const race = await Race.findOne({
-    _id: mongoose.Types.ObjectId(req.body.raceId),
+  const event = await Event.findOne({
+    _id: mongoose.Types.ObjectId(req.body.eventId),
   })
     .lean()
     .exec()
-  if (!race) {
+  if (!event) {
     res.status(404).json({
       message: 'Unable to find supplied raceId',
     })
     return
   }
   const seriesPromoter = await SeriesPromoter.findOne({
-    seriesId: mongoose.Types.ObjectId(race.seriesId),
+    seriesId: mongoose.Types.ObjectId(event.seriesId),
     promoterId: mongoose.Types.ObjectId(req.promoter._id),
   })
     .lean()
     .exec()
   if (!seriesPromoter) {
     res.status(401).json({
-      message: 'You are not a series promoter for this race',
+      message: 'You are not a series promoter for this event',
     })
     return
   }
   const existingPassing = await Passing.findOne({
-    raceId: mongoose.Types.ObjectId(req.body.raceId),
+    eventId: mongoose.Types.ObjectId(req.body.eventId),
     date: req.body.date,
     transponder: req.body.transponder,
   }).exec()
@@ -53,23 +53,15 @@ const create = _async(async (req, res) => {
   const riderId = rider ? { riderId: rider._id } : {}
   await Passing.create({
     ...riderId,
-    seriesId: race.seriesId,
+    seriesId: event.seriesId,
     ...req.body,
   })
   res.status(204).end()
 })
 
 const load = _async(async (req, res) => {
-  const race = await Race.findOne({
-    _id: mongoose.Types.ObjectId(req.query.raceId),
-  })
-    .lean()
-    .exec()
   const models = await Passing.find({
-    date: {
-      $gte: race.actualStart || new Date(0),
-    },
-    raceId: mongoose.Types.ObjectId(req.query.raceId),
+    eventId: mongoose.Types.ObjectId(req.query.eventId),
   })
     .populate('rider')
     .lean()
