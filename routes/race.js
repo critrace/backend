@@ -21,6 +21,7 @@ module.exports = (app) => {
   app.delete('/races/entries', auth, removeEntry)
   app.delete('/races', auth, _delete)
   app.get('/races/leaderboard', leaderboard)
+  app.put('/races', auth, update)
 }
 
 const leaderboard = _async(async (req, res) => {
@@ -32,24 +33,29 @@ const leaderboard = _async(async (req, res) => {
       raceId: mongoose.Types.ObjectId(req.query.raceId),
     })
       .exec()
-      .then((entries) =>
-        Promise.all(entries.map((e) => Rider.findOne({ _id: e.riderId })))
-      )
+      .then((entries) => {
+        if (!entries.length) {
+          return []
+        }
+        return Rider.find({
+          $or: _.map(entries, (entry) => ({ _id: entry.riderId })),
+        })
+      })
       .then((riders) => _.map(riders, 'transponder'))
       .then((transponders) => _.compact(transponders)),
   ])
   const passings = await Passing.find({
-    raceId: race._id,
+    eventId: race.eventId,
     date: {
       $gte: race.actualStart || new Date(0),
     },
+    $or: _.map(enteredTransponders, (transponder) => ({ transponder })),
   })
     .lean()
     .exec()
   const passingsByTransponder = _.chain(passings)
     .sortBy('date')
     .groupBy('transponder')
-    .pick(enteredTransponders)
     .value()
 
   // Calculate the leaderboard for a given lap number
@@ -100,7 +106,7 @@ const leaderboard = _async(async (req, res) => {
   res.json({
     isFinished:
       race.lapCount && leaderPass && race.lapCount <= leaderPass.lapCount,
-    leaderFinishTime: leaderPass.date,
+    leaderFinishTime: (leaderPass && leaderPass.date) || undefined,
     passings: finalResults,
   })
 })
@@ -300,4 +306,37 @@ const removeEntry = _async(async (req, res) => {
     riderId: mongoose.Types.ObjectId(req.body.riderId),
   }).exec()
   res.status(204).end()
+})
+
+const update = _async(async (req, res) => {
+  if (!req.body._id) {
+    res.status(400).json({
+      message: 'No _id supplied',
+    })
+    return
+  }
+  const race = await Race.findOne({
+    _id: mongoose.Types.ObjectId(req.body._id),
+  }).exec()
+  const seriesPromoter = await SeriesPromoter.findOne({
+    promoterId: req.promoter._id,
+    seriesId: race.seriesId,
+  }).exec()
+  if (!seriesPromoter) {
+    res.status(401).json({
+      message: 'You are not authorized to update this race',
+    })
+    return
+  }
+  const { n } = await Race.updateOne(
+    {
+      _id: mongoose.Types.ObjectId(req.body._id),
+    },
+    req.body.changes
+  )
+  if (n === 1) {
+    res.status(204).end()
+  } else {
+    res.status(500).end()
+  }
 })
