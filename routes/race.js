@@ -296,15 +296,11 @@ const update = _async(async (req, res) => {
     })
     return
   }
-  const { n } = await Race.updateOne(
+  await Race.updateOne(
     {
       _id: mongoose.Types.ObjectId(req.body._id),
     },
     req.body.changes
   )
-  if (n === 1) {
-    res.status(204).end()
-  } else {
-    res.status(500).end()
-  }
+  res.status(204).end()
 })

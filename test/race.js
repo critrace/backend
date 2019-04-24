@@ -408,14 +408,6 @@ test('should fail to update race', async (t) => {
       _id: race._id,
     })
     .expect(401)
-  // Should fail if no changes
-  await supertest(app)
-    .put('/races')
-    .send({
-      token,
-      _id: race._id,
-    })
-    .expect(500)
   t.pass()
 })
 

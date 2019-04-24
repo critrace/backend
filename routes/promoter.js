@@ -89,7 +89,7 @@ const update = _async(async (req, res) => {
     const salt = await bcrypt.genSalt(10)
     req.body.passwordHash = await bcrypt.hash(req.body.password, salt)
   }
-  const { n } = await Promoter.updateOne(
+  await Promoter.updateOne(
     {
       _id: req.promoter._id,
     },
@@ -97,11 +97,7 @@ const update = _async(async (req, res) => {
       ...req.body,
     }
   )
-  if (n === 1) {
-    res.status(204).end()
-  } else {
-    res.status(400).end()
-  }
+  res.status(204).end()
 })
 
 const login = _async(async (req, res) => {
