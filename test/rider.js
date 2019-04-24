@@ -12,7 +12,10 @@ test.before(async (t) => {
 
 test('should create one day rider', async (t) => {
   const { token } = t.context.promoter
-  await createRider(token)
+  await createRider(token, {
+    license: undefined,
+    licenseExpirationDate: undefined,
+  })
   t.pass()
 })
 
