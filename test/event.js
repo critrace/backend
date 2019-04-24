@@ -9,6 +9,16 @@ test.before(async (t) => {
   t.context.promoter = promoter
 })
 
+test('should fail to create event if not series promoter', async (t) => {
+  const { token } = t.context.promoter
+  const { body: series } = await createSeries(token)
+  const { body: promoter } = await createPromoter()
+  await createEvent(promoter.token, {
+    seriesId: series._id,
+  }).expect(401)
+  t.pass()
+})
+
 test('should load single event', async (t) => {
   const { token } = t.context.promoter
   const { body: series } = await createSeries(token)
