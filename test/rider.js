@@ -19,6 +19,12 @@ test('should create one day rider', async (t) => {
   t.pass()
 })
 
+test('should search for empty value', async (t) => {
+  const { body } = await supertest(app).get('/riders/search')
+  t.true(body.length === 0)
+  t.pass()
+})
+
 test('should search for rider', async (t) => {
   const { token } = t.context.promoter
   const { body: rider } = await createRider(token)
