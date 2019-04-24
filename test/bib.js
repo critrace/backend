@@ -110,6 +110,11 @@ test('should load bibs for race', async (t) => {
   t.pass()
 })
 
+test('should return 204 for empty bib load', async (t) => {
+  await getBibs()
+  t.pass()
+})
+
 test('should fail to load bibs for bad race id', async (t) => {
   const { token } = t.context.promoter
   await getBibs(token, {
@@ -213,5 +218,31 @@ test('should fail to update bib if not series promoter', async (t) => {
       },
     })
     .expect(401)
+  t.pass()
+})
+
+test('should fail to update bib with bad where clause', async (t) => {
+  const { token } = t.context.promoter
+  await supertest(app)
+    .put('/bibs')
+    .send({
+      token,
+      changes: {
+        bibNumber: 1,
+      },
+    })
+    .expect(400)
+  await supertest(app)
+    .put('/bibs')
+    .send({
+      token,
+      where: {
+        _id: await randomObjectId(),
+      },
+      changes: {
+        bibNumber: 1,
+      },
+    })
+    .expect(404)
   t.pass()
 })
