@@ -294,23 +294,24 @@ test('should fail to create entry if not promoter', async (t) => {
 test('should get leaderboard', async (t) => {
   const { token } = t.context.promoter
   const transponder = nanoid()
+  const transponder2 = nanoid()
   const { body: series } = await createSeries(token)
   const { body: event } = await createEvent(token, {
     seriesId: series._id,
   })
-  // Add 5 laps before registering the transponder
-  for (let x = 0; x < 5; x += 1) {
-    await supertest(app)
-      .post('/passings')
-      .send({
-        token,
-        eventId: event._id,
-        transponder,
-        date: moment().add(x + 10, 'minutes'),
-      })
-  }
+  await supertest(app)
+    .post('/passings')
+    .send({
+      token,
+      eventId: event._id,
+      transponder: transponder2,
+      date: moment(),
+    })
   const { body: rider } = await createRider(token, {
     transponder,
+  })
+  const { body: rider2 } = await createRider(token, {
+    transponder: transponder2,
   })
   const { body: race } = await createRace(token, {
     eventId: event._id,
@@ -318,6 +319,10 @@ test('should get leaderboard', async (t) => {
   const { body: bib } = await createBib(token, {
     seriesId: series._id,
     riderId: rider._id,
+  })
+  const { body: bib2 } = await createBib(token, {
+    seriesId: series._id,
+    riderId: rider2._id,
   })
   // Load the leaderboard before adding an entry for coverage reasons
   const { body: emptyLeaderboard } = await supertest(app)
@@ -333,6 +338,14 @@ test('should get leaderboard', async (t) => {
       riderId: rider._id,
       raceId: race._id,
       bibId: bib._id,
+    })
+  await supertest(app)
+    .post('/races/entry')
+    .send({
+      token,
+      riderId: rider2._id,
+      raceId: race._id,
+      bibId: bib2._id,
     })
   // Add 5 laps
   for (let x = 0; x < 5; x += 1) {
@@ -350,7 +363,7 @@ test('should get leaderboard', async (t) => {
     .query({
       raceId: race._id,
     })
-  t.true(leaderboard.passings.length === 1)
+  t.true(leaderboard.passings.length === 2)
   t.pass()
 })
 
