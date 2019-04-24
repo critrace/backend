@@ -85,7 +85,7 @@ const leaderboard = _async(async (req, res) => {
       })
         .lean()
         .exec()
-        .then((rider) => (rider ? { ...pass, riderId: rider._id } : pass))
+        .then((rider = {}) => ({ ...pass, riderId: rider._id }))
     })
   )
   const finalResults = _.map(resultPasses, (pass) => {

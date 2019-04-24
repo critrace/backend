@@ -364,6 +364,20 @@ test('should get leaderboard', async (t) => {
       raceId: race._id,
     })
   t.true(leaderboard.passings.length === 2)
+  await supertest(app)
+    .put('/races')
+    .send({
+      token,
+      _id: race._id,
+      changes: {
+        lapCount: 2,
+      },
+    })
+  await supertest(app)
+    .get('/races/leaderboard')
+    .query({
+      raceId: race._id,
+    })
   t.pass()
 })
 
