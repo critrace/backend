@@ -62,6 +62,10 @@ const getRiders = _async(async (req, res) => {
 
 const search = _async(async (req, res) => {
   const searchString = req.query.search || ''
+  if (!searchString.length) {
+    res.json([])
+    return
+  }
   // Limit to 3 search terms
   const strings = searchString.split(' ').slice(0, 3)
   const searchRegexes = strings.map((s) => new RegExp(`^${s}`, 'i'))
