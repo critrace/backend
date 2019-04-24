@@ -367,17 +367,17 @@ test('should get leaderboard', async (t) => {
       .post('/passings')
       .send({
         token,
-        raceId: race._id,
+        eventId: event._id,
         transponder,
-        riderId: x % 2 ? rider._id : undefined,
         date: moment().add(x, 'minutes'),
       })
   }
-  await supertest(app)
+  const { body: leaderboard } = await supertest(app)
     .get('/races/leaderboard')
     .query({
       raceId: race._id,
     })
+  t.true(leaderboard.passings.length === 1)
   t.pass()
 })
 
