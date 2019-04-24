@@ -288,15 +288,29 @@ test('should fail to create entry if not promoter', async (t) => {
   t.pass()
 })
 
+/**
+ * This is really fragile and should be refactored into it's own file
+ **/
 test('should get leaderboard', async (t) => {
   const { token } = t.context.promoter
   const transponder = nanoid()
-  const { body: rider } = await createRider(token, {
-    transponder,
-  })
   const { body: series } = await createSeries(token)
   const { body: event } = await createEvent(token, {
     seriesId: series._id,
+  })
+  // Add 5 laps before registering the transponder
+  for (let x = 0; x < 5; x += 1) {
+    await supertest(app)
+      .post('/passings')
+      .send({
+        token,
+        eventId: event._id,
+        transponder,
+        date: moment().add(x + 10, 'minutes'),
+      })
+  }
+  const { body: rider } = await createRider(token, {
+    transponder,
   })
   const { body: race } = await createRace(token, {
     eventId: event._id,
@@ -305,6 +319,13 @@ test('should get leaderboard', async (t) => {
     seriesId: series._id,
     riderId: rider._id,
   })
+  // Load the leaderboard before adding an entry for coverage reasons
+  const { body: emptyLeaderboard } = await supertest(app)
+    .get('/races/leaderboard')
+    .query({
+      raceId: race._id,
+    })
+  t.true(!emptyLeaderboard.passings)
   await supertest(app)
     .post('/races/entry')
     .send({
