@@ -430,3 +430,60 @@ test('should fail to delete race if not promoter', async (t) => {
     .expect(401)
   t.pass()
 })
+
+test('should fail to update race', async (t) => {
+  const { token } = t.context.promoter
+  const { body: promoter } = await createPromoter()
+  const { body: series } = await createSeries(token)
+  const { body: event } = await createEvent(token, {
+    seriesId: series._id,
+  })
+  const { body: race } = await createRace(token, {
+    eventId: event._id,
+  })
+  // Should fail with no _id
+  await supertest(app)
+    .put('/races')
+    .send({
+      token,
+    })
+    .expect(400)
+  // Should fail if not series promoter
+  await supertest(app)
+    .put('/races')
+    .send({
+      token: promoter.token,
+      _id: race._id,
+    })
+    .expect(401)
+  // Should fail if no changes
+  await supertest(app)
+    .put('/races')
+    .send({
+      token,
+      _id: race._id,
+    })
+    .expect(500)
+  t.pass()
+})
+
+test('should update race', async (t) => {
+  const { token } = t.context.promoter
+  const { body: series } = await createSeries(token)
+  const { body: event } = await createEvent(token, {
+    seriesId: series._id,
+  })
+  const { body: race } = await createRace(token, {
+    eventId: event._id,
+  })
+  await supertest(app)
+    .put('/races')
+    .send({
+      token,
+      _id: race._id,
+      changes: {
+        name: nanoid(),
+      },
+    })
+  t.pass()
+})
