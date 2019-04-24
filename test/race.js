@@ -26,54 +26,6 @@ test('should fail to create with bad event id', async (t) => {
   t.pass()
 })
 
-test('should fail to start if not promoter', async (t) => {
-  const { token } = t.context.promoter
-  const { body: promoter } = await createPromoter()
-  const { body: series } = await createSeries(token)
-  const { body: event } = await createEvent(token, {
-    seriesId: series._id,
-  })
-  const { body: race } = await createRace(token, {
-    eventId: event._id,
-  })
-  await supertest(app)
-    .post('/races/start')
-    .send({
-      token: promoter.token,
-      _id: race._id,
-    })
-    .expect(401)
-  t.pass()
-})
-
-test('should start race', async (t) => {
-  const { token } = t.context.promoter
-  const { body: series } = await createSeries(token)
-  const { body: event } = await createEvent(token, {
-    seriesId: series._id,
-  })
-  const { body: race } = await createRace(token, {
-    eventId: event._id,
-  })
-  await supertest(app)
-    .post('/races/start')
-    .send({
-      token,
-      _id: race._id,
-      actualStart: new Date(),
-    })
-  // Should fail to start twice
-  await supertest(app)
-    .post('/races/start')
-    .send({
-      token,
-      _id: race._id,
-      actualStart: new Date(),
-    })
-    .expect(400)
-  t.pass()
-})
-
 test('should get entries', async (t) => {
   const { token } = t.context.promoter
   const { body: series } = await createSeries(token)

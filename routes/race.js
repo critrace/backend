@@ -15,7 +15,6 @@ const _ = require('lodash')
 module.exports = (app) => {
   app.get('/races', auth.notRequired, getRaces)
   app.post('/races', auth, create)
-  app.post('/races/start', auth, start)
   app.post('/races/entry', auth, createEntry)
   app.get('/races/entries', getEntries)
   app.delete('/races/entries', auth, removeEntry)
@@ -152,37 +151,6 @@ const _delete = _async(async (req, res) => {
   await Entry.deleteMany({
     raceId: mongoose.Types.ObjectId(req.body._id),
   }).exec()
-  res.status(204).end()
-})
-
-const start = _async(async (req, res) => {
-  const race = await Race.findOne({
-    _id: mongoose.Types.ObjectId(req.body._id),
-  }).exec()
-  const seriesPromoter = await SeriesPromoter.findOne({
-    seriesId: race.seriesId,
-    promoterId: mongoose.Types.ObjectId(req.promoter._id),
-  }).exec()
-  if (!seriesPromoter) {
-    res.status(401).json({
-      message: 'You are not authorized to start this race',
-    })
-    return
-  }
-  if (race.actualStart) {
-    res.status(400).json({
-      message: 'This race already has an actualStart',
-    })
-    return
-  }
-  await Race.updateOne(
-    {
-      _id: mongoose.Types.ObjectId(req.body._id),
-    },
-    {
-      actualStart: req.body.actualStart || new Date(),
-    }
-  )
   res.status(204).end()
 })
 
