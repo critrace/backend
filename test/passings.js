@@ -2,7 +2,7 @@ import test from 'ava'
 import supertest from 'supertest'
 import app from '..'
 import nanoid from 'nanoid'
-import { createPromoter, createSeries, createRace, createEvent } from './api'
+import { createPromoter, createSeries, createRider, createEvent } from './api'
 import randomObjectId from 'random-objectid'
 
 test.before(async (t) => {
@@ -24,6 +24,29 @@ test('should create passing', async (t) => {
       date: new Date(),
       eventId: event._id,
     })
+  t.pass()
+})
+
+test('should match transponder to riderId', async (t) => {
+  const { token } = t.context.promoter
+  const { body: series } = await createSeries(token)
+  const { body: event } = await createEvent(token, { seriesId: series._id })
+  const { body: rider } = await createRider(token)
+  await supertest(app)
+    .post('/passings')
+    .send({
+      token,
+      transponder: rider.transponder,
+      eventId: event._id,
+      date: new Date(),
+    })
+  const { body: passings } = await supertest(app)
+    .get('/passings')
+    .query({
+      token,
+      eventId: event._id,
+    })
+  t.true(passings[0].riderId === rider._id)
   t.pass()
 })
 
