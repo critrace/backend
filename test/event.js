@@ -48,6 +48,34 @@ test('should load series events', async (t) => {
   t.pass()
 })
 
+test('should load own events', async (t) => {
+  const { body: promoter } = await createPromoter()
+  const { body: emptyEvents } = await supertest(app)
+    .get('/events')
+    .query({
+      token: promoter.token,
+    })
+  t.true(emptyEvents.length === 0)
+  const { body: series } = await createSeries(promoter.token)
+  await createEvent(promoter.token, {
+    seriesId: series._id,
+  })
+  const { body: events } = await supertest(app)
+    .get('/events')
+    .query({
+      token: promoter.token,
+    })
+  t.true(events.length === 1)
+  t.pass()
+})
+
+test('should fail to load own events if not authenticated', async (t) => {
+  await supertest(app)
+    .get('/events')
+    .expect(401)
+  t.pass()
+})
+
 test('should load home events', async (t) => {
   await supertest(app).get('/events/home')
   t.pass()

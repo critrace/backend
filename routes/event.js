@@ -51,7 +51,7 @@ const getEvent = _async(async (req, res) => {
     res.json(events)
     return
   }
-  if (!req.promoter) {
+  if (!req.promoter._id) {
     res.status(401).json({
       message: 'Authenticate to retrieve owned events',
     })
