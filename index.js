@@ -51,6 +51,7 @@ require('./routes/rider')(app)
 require('./routes/series')(app)
 require('./routes/bib')(app)
 require('./routes/passing')(app)
+require('./routes/leaderboard')(app)
 
 if (process.env.NODE_ENV !== 'test') {
   app.use(mongoDisconnect)
