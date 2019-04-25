@@ -10,7 +10,7 @@ require('./models/series')
 require('./models/seriesPromoter')
 require('./models/passing')
 const express = require('express')
-const _async = require('async-express')
+const asyncExpress = require('async-express')
 const app = express()
 
 app.use(express.json())
@@ -26,7 +26,7 @@ if (process.env.NODE_ENV === 'test') {
   process.env.DB_URI = 'mongodb://127.0.0.1:27017/test'
 }
 
-const mongoConnect = _async(async (req, res, next) => {
+const mongoConnect = asyncExpress(async (req, res, next) => {
   await mongoose.connect(process.env.DB_URI, {
     connectTimeoutMS: 5000,
     useNewUrlParser: true,
@@ -34,7 +34,7 @@ const mongoConnect = _async(async (req, res, next) => {
   next()
 })
 
-const mongoDisconnect = _async(async (req, res, next) => {
+const mongoDisconnect = asyncExpress(async (req, res, next) => {
   await mongoose.disconnect()
   next()
 })

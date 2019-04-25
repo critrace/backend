@@ -3,7 +3,7 @@ const Event = mongoose.model('Event')
 const Race = mongoose.model('Race')
 const Entry = mongoose.model('Entry')
 const SeriesPromoter = mongoose.model('SeriesPromoter')
-const _async = require('async-express')
+const asyncExpress = require('async-express')
 const auth = require('../middleware/auth')
 const { isSeriesPromoter } = require('./series')
 const _ = require('lodash')
@@ -16,7 +16,7 @@ module.exports = (app) => {
   app.get('/events/entries', getEntries)
 }
 
-const create = _async(async (req, res) => {
+const create = asyncExpress(async (req, res) => {
   if (!(await isSeriesPromoter(req.body.seriesId, req.promoter._id))) {
     res.status(401).json({
       message: 'You must be a series promoter to create an event',
@@ -30,7 +30,7 @@ const create = _async(async (req, res) => {
   res.json(created)
 })
 
-const getEvent = _async(async (req, res) => {
+const getEvent = asyncExpress(async (req, res) => {
   if (req.query._id) {
     const event = await Event.findOne({
       _id: mongoose.Types.ObjectId(req.query._id),
@@ -72,7 +72,7 @@ const getEvent = _async(async (req, res) => {
   res.json(events)
 })
 
-const homeEvents = _async(async (req, res) => {
+const homeEvents = asyncExpress(async (req, res) => {
   const events = await Event.find({
     seriesId: {
       $ne: mongoose.Types.ObjectId('5c9f78c12d17216b9edfbb9f'),
@@ -88,7 +88,7 @@ const homeEvents = _async(async (req, res) => {
   res.json(events)
 })
 
-const deleteEvent = _async(async (req, res) => {
+const deleteEvent = asyncExpress(async (req, res) => {
   const event = await Event.findOne({
     _id: mongoose.Types.ObjectId(req.body._id),
   })
@@ -117,7 +117,7 @@ const deleteEvent = _async(async (req, res) => {
   res.status(204).end()
 })
 
-const getEntries = _async(async (req, res) => {
+const getEntries = asyncExpress(async (req, res) => {
   const entries = await Entry.find({
     eventId: mongoose.Types.ObjectId(req.query._id),
   })

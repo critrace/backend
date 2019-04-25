@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 const Promoter = mongoose.model('Promoter')
-const _async = require('async-express')
+const asyncExpress = require('async-express')
 const emailValidator = require('email-validator')
 const bcrypt = require('bcrypt')
 const auth = require('../middleware/auth')
@@ -13,7 +13,7 @@ module.exports = (app) => {
   app.put('/promoters', auth, update)
 }
 
-const load = _async(async (req, res) => {
+const load = asyncExpress(async (req, res) => {
   const promoter = await Promoter.findOne({
     _id: mongoose.Types.ObjectId(req.query._id || req.promoter._id),
   })
@@ -26,7 +26,7 @@ const load = _async(async (req, res) => {
   res.json(promoter)
 })
 
-const create = _async(async (req, res) => {
+const create = asyncExpress(async (req, res) => {
   if (!req.body.password || req.body.password.length < 6) {
     res.status(400).json({
       message: 'Please make sure your password is at least 6 characters.',
@@ -66,7 +66,7 @@ const create = _async(async (req, res) => {
   res.json({ ..._doc, token })
 })
 
-const update = _async(async (req, res) => {
+const update = asyncExpress(async (req, res) => {
   const promoter = await Promoter.findOne({
     _id: req.promoter._id,
   }).exec()
@@ -100,7 +100,7 @@ const update = _async(async (req, res) => {
   res.status(204).end()
 })
 
-const login = _async(async (req, res) => {
+const login = asyncExpress(async (req, res) => {
   const email = req.body.email.toLowerCase()
   const promoter = await Promoter.findOne({
     email,

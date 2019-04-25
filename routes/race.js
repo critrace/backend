@@ -4,7 +4,7 @@ const Event = mongoose.model('Event')
 const Entry = mongoose.model('Entry')
 const Bib = mongoose.model('Bib')
 const SeriesPromoter = mongoose.model('SeriesPromoter')
-const _async = require('async-express')
+const asyncExpress = require('async-express')
 const auth = require('../middleware/auth')
 const { isSeriesPromoter } = require('./series')
 
@@ -18,7 +18,7 @@ module.exports = (app) => {
   app.put('/races', auth, update)
 }
 
-const create = _async(async (req, res) => {
+const create = asyncExpress(async (req, res) => {
   const event = await Event.findOne({
     _id: mongoose.Types.ObjectId(req.body.eventId),
   })
@@ -34,7 +34,7 @@ const create = _async(async (req, res) => {
   res.json(created)
 })
 
-const _delete = _async(async (req, res) => {
+const _delete = asyncExpress(async (req, res) => {
   const race = await Race.findOne({
     _id: mongoose.Types.ObjectId(req.body._id),
   })
@@ -62,7 +62,7 @@ const _delete = _async(async (req, res) => {
   res.status(204).end()
 })
 
-const getEntries = _async(async (req, res) => {
+const getEntries = asyncExpress(async (req, res) => {
   const entries = await Entry.find({
     raceId: mongoose.Types.ObjectId(req.query._id),
   })
@@ -74,7 +74,7 @@ const getEntries = _async(async (req, res) => {
   res.json(entries)
 })
 
-const getRaces = _async(async (req, res) => {
+const getRaces = asyncExpress(async (req, res) => {
   if (req.query.eventId) {
     const races = await Race.find({
       eventId: mongoose.Types.ObjectId(req.query.eventId),
@@ -114,7 +114,7 @@ const getRaces = _async(async (req, res) => {
   }
 })
 
-const createEntry = _async(async (req, res) => {
+const createEntry = asyncExpress(async (req, res) => {
   const race = await Race.findOne({
     _id: mongoose.Types.ObjectId(req.body.raceId),
   })
@@ -164,7 +164,7 @@ const createEntry = _async(async (req, res) => {
   res.json(created)
 })
 
-const removeEntry = _async(async (req, res) => {
+const removeEntry = asyncExpress(async (req, res) => {
   const race = await Race.findOne({
     _id: mongoose.Types.ObjectId(req.body.raceId),
   })
@@ -184,7 +184,7 @@ const removeEntry = _async(async (req, res) => {
   res.status(204).end()
 })
 
-const update = _async(async (req, res) => {
+const update = asyncExpress(async (req, res) => {
   if (!req.body._id) {
     res.status(400).json({
       message: 'No _id supplied',

@@ -3,7 +3,7 @@ const Passing = mongoose.model('Passing')
 const Rider = mongoose.model('Rider')
 const Race = mongoose.model('Race')
 const Entry = mongoose.model('Entry')
-const _async = require('async-express')
+const asyncExpress = require('async-express')
 const moment = require('moment')
 const _ = require('lodash')
 
@@ -29,7 +29,7 @@ async function transpondersByRaceId(_id) {
 /**
  * Calculate the latest results for a given race
  **/
-const leaderboard = _async(async (req, res) => {
+const leaderboard = asyncExpress(async (req, res) => {
   const [race, enteredTransponders] = await Promise.all([
     Race.findOne({
       _id: mongoose.Types.ObjectId(req.query.raceId),

@@ -3,7 +3,7 @@ const Bib = mongoose.model('Bib')
 const Entry = mongoose.model('Entry')
 const SeriesPromoter = mongoose.model('SeriesPromoter')
 const Race = mongoose.model('Race')
-const _async = require('async-express')
+const asyncExpress = require('async-express')
 const auth = require('../middleware/auth')
 const { isSeriesPromoter } = require('./series')
 
@@ -14,7 +14,7 @@ module.exports = (app) => {
   app.put('/bibs', auth, update)
 }
 
-const create = _async(async (req, res) => {
+const create = asyncExpress(async (req, res) => {
   const existingBib = await Bib.findOne({
     seriesId: mongoose.Types.ObjectId(req.body.seriesId),
     riderId: mongoose.Types.ObjectId(req.body.riderId),
@@ -50,7 +50,7 @@ const create = _async(async (req, res) => {
   res.json(created)
 })
 
-const getBibs = _async(async (req, res) => {
+const getBibs = asyncExpress(async (req, res) => {
   if (req.query.seriesId) {
     const bibs = await Bib.find({
       seriesId: mongoose.Types.ObjectId(req.query.seriesId),
@@ -92,7 +92,7 @@ const getBibs = _async(async (req, res) => {
   res.status(204).end()
 })
 
-const deleteBib = _async(async (req, res) => {
+const deleteBib = asyncExpress(async (req, res) => {
   const bib = await Bib.findOne({
     _id: mongoose.Types.ObjectId(req.body._id),
   })
@@ -119,7 +119,7 @@ const deleteBib = _async(async (req, res) => {
   res.status(204).end()
 })
 
-const update = _async(async (req, res) => {
+const update = asyncExpress(async (req, res) => {
   if (!req.body.where) {
     res.status(400).json({
       message: 'No where clause supplied',

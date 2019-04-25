@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 const Rider = mongoose.model('Rider')
-const _async = require('async-express')
+const asyncExpress = require('async-express')
 const auth = require('../middleware/auth')
 
 module.exports = (app) => {
@@ -11,7 +11,7 @@ module.exports = (app) => {
   app.post('/riders/byId', byId)
 }
 
-const byId = _async(async (req, res) => {
+const byId = asyncExpress(async (req, res) => {
   if (req.body._ids && req.body._ids.length === 0) {
     res.json([])
     return
@@ -24,7 +24,7 @@ const byId = _async(async (req, res) => {
   res.json(riders)
 })
 
-const create = _async(async (req, res) => {
+const create = asyncExpress(async (req, res) => {
   if (!req.body.license && !req.body.licenseExpirationDate) {
     // It's a one day, set the license expiration 1 day forward
     const licenseExpirationDate = new Date()
@@ -35,7 +35,7 @@ const create = _async(async (req, res) => {
   res.json(created)
 })
 
-const getRiders = _async(async (req, res) => {
+const getRiders = asyncExpress(async (req, res) => {
   const query = {}
   if (req.query.license) {
     query.license = req.query.license
@@ -60,7 +60,7 @@ const getRiders = _async(async (req, res) => {
   res.json(model)
 })
 
-const search = _async(async (req, res) => {
+const search = asyncExpress(async (req, res) => {
   const searchString = req.query.search || ''
   if (!searchString.length) {
     res.json([])
@@ -111,7 +111,7 @@ const search = _async(async (req, res) => {
   res.json(riders)
 })
 
-const update = _async(async (req, res) => {
+const update = asyncExpress(async (req, res) => {
   if (!req.body.where) {
     res.status(400).json({
       message: 'No where clause supplied',

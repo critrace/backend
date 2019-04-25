@@ -3,7 +3,7 @@ const Passing = mongoose.model('Passing')
 const Event = mongoose.model('Event')
 const Rider = mongoose.model('Rider')
 const SeriesPromoter = mongoose.model('SeriesPromoter')
-const _async = require('async-express')
+const asyncExpress = require('async-express')
 const auth = require('../middleware/auth')
 
 module.exports = (app) => {
@@ -12,7 +12,7 @@ module.exports = (app) => {
   app.delete('/passings', auth, _delete)
 }
 
-const create = _async(async (req, res) => {
+const create = asyncExpress(async (req, res) => {
   const event = await Event.findOne({
     _id: mongoose.Types.ObjectId(req.body.eventId),
   })
@@ -59,7 +59,7 @@ const create = _async(async (req, res) => {
   res.status(204).end()
 })
 
-const load = _async(async (req, res) => {
+const load = asyncExpress(async (req, res) => {
   const models = await Passing.find({
     eventId: mongoose.Types.ObjectId(req.query.eventId),
   })
@@ -69,7 +69,7 @@ const load = _async(async (req, res) => {
   res.json(models)
 })
 
-const _delete = _async(async (req, res) => {
+const _delete = asyncExpress(async (req, res) => {
   const passing = await Passing.findOne({
     _id: mongoose.Types.ObjectId(req.body._id),
   }).exec()
