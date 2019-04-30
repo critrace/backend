@@ -63,6 +63,7 @@ const load = asyncExpress(async (req, res) => {
   const models = await Passing.find({
     eventId: mongoose.Types.ObjectId(req.query.eventId),
   })
+    .limit(250)
     .populate('rider')
     .lean()
     .exec()
