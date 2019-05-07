@@ -124,7 +124,7 @@ test('should redirect to latest race', async (t) => {
     .get('/series/race/latest')
     .query({ seriesId: series._id })
     .expect(404)
-  const { body: race } = await createRace(token, {
+  await createRace(token, {
     seriesId: series._id,
     eventId: event._id,
   })
