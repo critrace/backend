@@ -2,7 +2,7 @@ import test from 'ava'
 import supertest from 'supertest'
 import app from '..'
 import nanoid from 'nanoid'
-import { createPromoter, createSeries } from './api'
+import { createPromoter, createSeries, createEvent, createRace } from './api'
 
 test.before(async (t) => {
   const { body: promoter } = await createPromoter()
@@ -102,5 +102,37 @@ test('should fail to add if not series promoter', async (t) => {
       email: promoter.email,
     })
     .expect(401)
+  t.pass()
+})
+
+test('should redirect to latest race', async (t) => {
+  const { token } = t.context.promoter
+  const { body: series } = await createSeries(token)
+  await supertest(app)
+    .get('/series/race/latest')
+    .expect(400)
+  await supertest(app)
+    .get('/series/race/latest')
+    .query({
+      seriesId: series._id,
+    })
+    .expect(404)
+  const { body: event } = await createEvent(token, {
+    seriesId: series._id,
+  })
+  await supertest(app)
+    .get('/series/race/latest')
+    .query({ seriesId: series._id })
+    .expect(404)
+  const { body: race } = await createRace(token, {
+    seriesId: series._id,
+    eventId: event._id,
+  })
+  await supertest(app)
+    .get('/series/race/latest')
+    .query({
+      seriesId: series._id,
+    })
+    .expect(301)
   t.pass()
 })

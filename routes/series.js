@@ -40,6 +40,12 @@ const latestRaceRedirect = asyncExpress(async (req, res) => {
       startDate: -1,
     })
     .exec()
+  if (!event) {
+    res.status(404).json({
+      message: `Unable to find an event for seriesId: ${req.query.seriesId}`,
+    })
+    return
+  }
   const race = await Race.findOne({
     eventId: event._id,
   })
