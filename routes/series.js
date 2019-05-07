@@ -2,6 +2,8 @@ const mongoose = require('mongoose')
 const Series = mongoose.model('Series')
 const SeriesPromoter = mongoose.model('SeriesPromoter')
 const Promoter = mongoose.model('Promoter')
+const Race = mongoose.model('Race')
+const Event = mongoose.model('Event')
 const asyncExpress = require('async-express')
 const auth = require('../middleware/auth')
 
@@ -11,6 +13,7 @@ module.exports = (app) => {
   app.get('/series/authenticated', auth, getOwnSeries)
   app.post('/series/invite', auth, addPromoter)
   app.get('/series/promoters', getPromoters)
+  app.get('/series/race/latest', latestRaceRedirect)
 }
 
 module.exports.isSeriesPromoter = isSeriesPromoter
@@ -22,6 +25,37 @@ async function isSeriesPromoter(seriesId, promoterId) {
   })
   return !!model
 }
+
+const latestRaceRedirect = asyncExpress(async (req, res) => {
+  if (!req.query.seriesId) {
+    res.status(400).json({
+      message: 'Supply a seriesId parameter to redirect',
+    })
+    return
+  }
+  const event = await Event.findOne({
+    seriesId: mongoose.Types.ObjectId(req.query.seriesId),
+  })
+    .sort({
+      startDate: -1,
+    })
+    .exec()
+  const race = await Race.findOne({
+    eventId: event._id,
+  })
+    .sort({
+      scheduledStartTime: -1,
+    })
+    .lean()
+    .exec()
+  if (!race) {
+    res.status(404).json({
+      message: `Unable to find a race for seriesId: ${req.query.seriesId}`,
+    })
+    return
+  }
+  res.redirect(301, `https://critrace.com/race/${race._id.toString()}`)
+})
 
 const create = asyncExpress(async (req, res) => {
   const created = await Series.create(req.body)
