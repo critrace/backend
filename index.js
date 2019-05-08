@@ -53,7 +53,7 @@ require('./routes/bib')(app)
 require('./routes/passing')(app)
 require('./routes/leaderboard')(app)
 
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'development') {
   app.use(mongoDisconnect)
 }
 
