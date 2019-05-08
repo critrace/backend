@@ -5,12 +5,51 @@ const Rider = mongoose.model('Rider')
 const SeriesPromoter = mongoose.model('SeriesPromoter')
 const asyncExpress = require('async-express')
 const auth = require('../middleware/auth')
+const moment = require('moment')
 
 module.exports = (app) => {
   app.get('/passings', load)
   app.post('/passings', auth, create)
   app.delete('/passings', auth, _delete)
+  app.post('/passings/import', auth, massImport)
 }
+
+const massImport = asyncExpress(async (req, res) => {
+  const { passings } = req.body
+  const passes = passings.split('\n').map((passing) => {
+    const [_, transponder, _date, time] = passing.split(';')
+    const date = moment(`${_date};${time}`, 'YYYY-MM-DDHH:mm:ss:SSS').toDate()
+    return { transponder, date, eventId: req.body.eventId }
+  })
+  const event = await Event.findOne({
+    _id: mongoose.Types.ObjectId(req.body.eventId),
+  }).exec()
+  const promises = passes.map((pass) =>
+    Passing.findOne({
+      eventId: mongoose.Types.ObjectId(pass.eventId),
+      date: pass.date,
+      transponder: pass.transponder,
+    })
+      .exec()
+      .then((existing) => {
+        if (existing) return
+        return Rider.findOne({
+          transponder: pass.transponder,
+        })
+          .exec()
+          .then((rider) => (rider ? { riderId: rider._id } : {}))
+          .then((rider) =>
+            Passing.create({
+              ...rider,
+              seriesId: event.seriesId,
+              ...pass,
+            })
+          )
+      })
+  )
+  await Promise.all(promises)
+  res.status(204).end()
+})
 
 const create = asyncExpress(async (req, res) => {
   const event = await Event.findOne({
