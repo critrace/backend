@@ -11,7 +11,7 @@ module.exports = (app) => {
   app.get('/races/leaderboard', leaderboard)
 }
 
-async function transpondersByRaceId(_id) {
+async function ridersByRaceId(_id) {
   return Entry.find({
     raceId: mongoose.Types.ObjectId(_id),
   })
@@ -22,30 +22,49 @@ async function transpondersByRaceId(_id) {
         $or: _.map(entries, (entry) => ({ _id: entry.riderId })),
       })
     })
-    .then((riders) => _.map(riders, 'transponder'))
-    .then((transponders) => _.compact(transponders))
 }
 
 /**
  * Calculate the latest results for a given race
  **/
 const leaderboard = asyncExpress(async (req, res) => {
-  const [race, enteredTransponders] = await Promise.all([
+  const [race, enteredRiders] = await Promise.all([
     Race.findOne({
       _id: mongoose.Types.ObjectId(req.query.raceId),
     }).exec(),
-    transpondersByRaceId(req.query.raceId),
+    ridersByRaceId(req.query.raceId),
   ])
+  const enteredTransponders = _.chain(enteredRiders)
+    .map('transponder')
+    .compact()
+    .value()
+  const enteredRiderIds = _.chain(enteredRiders)
+    .map('_id')
+    .compact()
+    .map((id) => id.toString())
+    .value()
   const passings = await Passing.find({
     eventId: race.eventId,
     date: {
       $gte: race.actualStart || new Date(0),
     },
-    $or: _.map(enteredTransponders, (transponder) => ({ transponder })),
   })
     .lean()
     .exec()
   const passingsByTransponder = _.chain(passings)
+    .filter(
+      (passing) =>
+        enteredTransponders.indexOf(passing.transponder) !== -1 ||
+        (passing.riderId &&
+          enteredRiderIds.indexOf(passing.riderId.toString()) !== -1)
+    )
+    .map((passing) => {
+      if (passing.transponder) return passing
+      return {
+        ...passing,
+        transponder: passing.riderId.toString(),
+      }
+    })
     .sortBy('date')
     .groupBy('transponder')
     .value()
