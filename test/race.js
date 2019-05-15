@@ -330,7 +330,7 @@ test('should get leaderboard', async (t) => {
     .query({
       raceId: race._id,
     })
-  t.true(!emptyLeaderboard.passings)
+  t.true(!emptyLeaderboard.passings.length)
   await supertest(app)
     .post('/races/entry')
     .send({
