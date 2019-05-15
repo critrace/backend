@@ -3,6 +3,7 @@ const Event = mongoose.model('Event')
 const Race = mongoose.model('Race')
 const Entry = mongoose.model('Entry')
 const SeriesPromoter = mongoose.model('SeriesPromoter')
+const Passing = mongoose.model('Passing')
 const asyncExpress = require('async-express')
 const auth = require('../middleware/auth')
 const { isSeriesPromoter } = require('./series')
@@ -14,7 +15,37 @@ module.exports = (app) => {
   app.post('/events', auth, create)
   app.delete('/events', auth, deleteEvent)
   app.get('/events/entries', getEntries)
+  app.get('/events/deduplicate', deduplicate)
 }
+
+const deduplicate = asyncExpress(async (req, res) => {
+  const passings = await Passing.find({
+    eventId: mongoose.Types.ObjectId(req.query.eventId),
+  })
+    .lean()
+    .exec()
+  const removedIds = []
+  for (const p of passings) {
+    if (removedIds.indexOf(p._id.toString()) !== -1) continue
+    const found = _.find(
+      passings,
+      (_p) =>
+        _p._id.toString() !== p._id.toString() &&
+        _p.date.toString() === p.date.toString() &&
+        _p.transponder === p.transponder
+    )
+    if (!found) continue
+    if (found && found.riderId) {
+      // delete p
+      await Passing.deleteOne({ _id: mongoose.Types.ObjectId(p._id) })
+      removedIds.push(p._id.toString())
+    } else {
+      await Passing.deleteOne({ _id: mongoose.Types.ObjectId(found._id) })
+      removedIds.push(found._id.toString())
+    }
+  }
+  res.status(204).end()
+})
 
 const create = asyncExpress(async (req, res) => {
   if (!(await isSeriesPromoter(req.body.seriesId, req.promoter._id))) {
