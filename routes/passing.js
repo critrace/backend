@@ -18,7 +18,9 @@ const massImport = asyncExpress(async (req, res) => {
   const { passings } = req.body
   const passes = passings.split('\n').map((passing) => {
     const [_, transponder, _date, time] = passing.split(';')
-    const date = moment(`${_date};${time}`, 'YYYY-MM-DDHH:mm:ss:SSS').toDate()
+    console.log(_date, time)
+    console.log(moment(`${_date}:${time}`))
+    const date = moment(`${_date};${time}`, 'YYYY-MM-DD;HH:mm:ss:SSS').toDate()
     return { transponder, date, eventId: req.body.eventId }
   })
   const event = await Event.findOne({
@@ -32,7 +34,7 @@ const massImport = asyncExpress(async (req, res) => {
     })
       .exec()
       .then((existing) => {
-        if (existing) return
+        // if (existing) return
         return Rider.findOne({
           transponder: pass.transponder,
         })
