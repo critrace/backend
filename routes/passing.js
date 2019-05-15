@@ -34,7 +34,7 @@ const massImport = asyncExpress(async (req, res) => {
     })
       .exec()
       .then((existing) => {
-        // if (existing) return
+        if (existing) return
         return Rider.findOne({
           transponder: pass.transponder,
         })
