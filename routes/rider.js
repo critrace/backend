@@ -20,6 +20,11 @@ module.exports = (app) => {
 }
 
 const importRiders = asyncExpress(async (req, res) => {
+  if (req.promoter._id.toString() !== '5c9b27726be36765d827bc4f') {
+    res.status(401)
+    res.json({ message: 'Not authorized to import rider data' })
+    return
+  }
   const ridersCSV = req.file.buffer.toString('utf8')
   // Verify csv validity by looking at first line
   const currentSchema =
