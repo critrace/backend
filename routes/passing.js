@@ -68,7 +68,10 @@ const importPassings = asyncExpress(async (req, res) => {
     .value()
   for (const passing of passings) {
     if (
-      passingsByTransponderDate[passing.transponder][passing.date.toString()]
+      _.get(
+        passingsByTransponderDate,
+        `[${passing.transponder}][${passing.date.toString()}]`
+      )
     ) {
       continue
     }
