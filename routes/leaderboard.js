@@ -30,11 +30,23 @@ async function transpondersByRaceId(_id) {
  * Calculate the latest results for a given race
  **/
 const leaderboard = asyncExpress(async (req, res) => {
+  res.json(await leaderboardByRaceId(req.query.raceId))
+})
+
+/**
+ * Return format
+ * {
+ *   passings: Passing[],
+ *   isFinished: boolean,
+ *   leaderFinishTime: ISODate,
+ *  }
+ **/
+const leaderboardByRaceId = async (raceId) => {
   const [race, enteredTransponders] = await Promise.all([
     Race.findOne({
-      _id: mongoose.Types.ObjectId(req.query.raceId),
+      _id: mongoose.Types.ObjectId(raceId),
     }).exec(),
-    transpondersByRaceId(req.query.raceId),
+    transpondersByRaceId(raceId),
   ])
   const passings = await Passing.find({
     eventId: race.eventId,
@@ -95,10 +107,12 @@ const leaderboard = asyncExpress(async (req, res) => {
     }
   })
   const [leaderPass] = finalResults
-  res.json({
+  return {
     isFinished:
       race.lapCount && leaderPass && race.lapCount <= leaderPass.lapCount,
     leaderFinishTime: (leaderPass && leaderPass.date) || undefined,
     passings: finalResults,
-  })
-})
+  }
+}
+
+module.exports.leaderboardByRaceId = leaderboardByRaceId
