@@ -26,12 +26,12 @@ module.exports = (app) => {
  * Result csv download route
  **/
 const generateCSV = asyncExpress(async (req, res) => {
-  const promoter = await SeriesPromoter.findOne({
-    promoterId: mongoose.Types.ObjectId(req.promoter._id),
+  const _event = await Event.findOne({
+    _id: mongoose.Types.ObjectId(req.query.eventId),
   })
-    .lean()
+    .populate('races')
     .exec()
-  if (!promoter) {
+  if (!(await isSeriesPromoter(_event.seriesId, req.promoter._id))) {
     res.status(401)
     res.json({ message: 'Not authorized to generate CSV ' })
     return
@@ -50,11 +50,6 @@ const generateCSV = asyncExpress(async (req, res) => {
     'Team',
   ]
   // Array of Passings representing final race positions
-  const _event = await Event.findOne({
-    _id: mongoose.Types.ObjectId(req.query.eventId),
-  })
-    .populate('races')
-    .exec()
   const leaderboards = await Promise.all(
     _event.races.map((race) => leaderboardByRaceId(race._id))
   )
