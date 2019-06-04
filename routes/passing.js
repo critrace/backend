@@ -12,6 +12,7 @@ const upload = multer({
 const csvParse = require('csv-parse')
 const moment = require('moment')
 const _ = require('lodash')
+const { isSeriesPromoter } = require('./series')
 
 module.exports = (app) => {
   app.get('/passings', load)
@@ -38,13 +39,7 @@ const importPassings = asyncExpress(async (req, res) => {
   const event = await Event.findOne({
     _id: mongoose.Types.ObjectId(req.body.eventId),
   }).exec()
-  const promoter = await SeriesPromoter.findOne({
-    promoterId: mongoose.Types.ObjectId(req.promoter._id),
-    seriesId: event.seriesId,
-  })
-    .lean()
-    .exec()
-  if (!promoter) {
+  if (!(await isSeriesPromoter(event.seriesId, req.promoter._id))) {
     res.status(401)
     res.json({ message: 'Not authorized to upload passings for event' })
     return
