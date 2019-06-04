@@ -2,6 +2,13 @@ const mongoose = require('mongoose')
 const Rider = mongoose.model('Rider')
 const asyncExpress = require('async-express')
 const auth = require('../middleware/auth')
+const _ = require('lodash')
+const multer = require('multer')
+const upload = multer({
+  storage: multer.memoryStorage(),
+})
+const moment = require('moment')
+const csvParse = require('csv-parse')
 
 module.exports = (app) => {
   app.get('/riders', getRiders)
@@ -9,7 +16,70 @@ module.exports = (app) => {
   app.get('/riders/search', search)
   app.put('/riders', auth, update)
   app.post('/riders/byId', byId)
+  app.post('/riders/import', auth, upload.single('csv'), importRiders)
 }
+
+const importRiders = asyncExpress(async (req, res) => {
+  const ridersCSV = req.file.buffer.toString('utf8')
+  // Verify csv validity by looking at first line
+  const currentSchema =
+    'Suspension,license#,last name,first name,city,state,zip,gender,racing age,exp date,Rdclub,Rdteam,Trackclub,Trackteam,MTNclub,MTNteam,CXclub,CXteam,IntlTeam,Collclub,Road Cat,Track Cat, XC Cat, DH Cat, OT Cat, MX Cat, Cross Cat,birthdate,citizen,RD Club id,RD Team id,Track Clubid,Track Teamid,MTN Clubid,MTN Teamid,CX Clubid,CX Team id,Coll Clubid,UCI Code,CX Rank,HS Club,HS Team,HS Club id,HS Team id, UCI ID, UCI Category, Nationality, Citizenship, BMX'
+  if (ridersCSV.indexOf(currentSchema) !== 0) {
+    res.status(400)
+    res.json({ message: 'Schema change detected, aborting import' })
+    return
+  }
+  // Parse the csv to an array of array
+  const data = await new Promise((rs, rj) => {
+    csvParse(
+      ridersCSV,
+      {
+        skip_empty_lines: true,
+      },
+      (err, output) => {
+        if (err) return rj(err)
+        rs(output)
+      }
+    )
+  })
+  // Strip the first row and map to objects
+  const riders = _.chain(data)
+    .tail()
+    .map((values) => ({
+      licenseStatus: values[0] || 'Active',
+      // Remove leading 0's
+      license: `${+values[1]}`,
+      lastname: values[2],
+      firstname: values[3],
+      racingAge: values[8],
+      licenseExpirationDate: values[9]
+        ? moment(values[9], 'MM/DD/YYYY').toISOString()
+        : '',
+      teamName: values[11],
+      racingCategoryRoad: values[20],
+      teamId: values[30],
+    }))
+    .value()
+  for (const [index, rider] of riders.entries()) {
+    try {
+      const result = await Rider.updateOne(
+        {
+          license: rider.license,
+        },
+        rider
+      ).exec()
+      if (result.n === 0) {
+        // Need to create the rider
+        await Rider.create(rider)
+      }
+      index % 50 === 0 &&
+        console.log(`${index}/${riders.length} riders updated`)
+    } catch (err) {
+      console.log('Error updating rider', rider, err)
+    }
+  }
+  res.status(204).end()
+})
 
 const byId = asyncExpress(async (req, res) => {
   if (req.body._ids && req.body._ids.length === 0) {
@@ -89,20 +159,7 @@ const search = asyncExpress(async (req, res) => {
       },
     ],
   }))
-  const riders = await Rider.find({
-    $or: [
-      {
-        licenseExpirationDate: {
-          $gte: new Date(),
-        },
-      },
-      {
-        license: {
-          $exists: false,
-        },
-      },
-    ],
-  })
+  const riders = await Rider.find({})
     .and(orClauses)
     .populate('bibs')
     .limit(20)
