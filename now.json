@@ -3,7 +3,6 @@
   "alias": ["api.critrace.com"],
   "env": {
     "DB_URI": "@db-uri",
-    "RIDER_LIST_URL": "@rider-list-url",
     "WEB_TOKEN_SECRET": "@web-token-secret"
   },
   "builds": [{ "src": "index.js", "use": "@now/node" }],
