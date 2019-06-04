@@ -39,6 +39,13 @@ PassingSchema.virtual('rider', {
   justOne: true,
 })
 
+PassingSchema.virtual('race', {
+  ref: 'Race',
+  localField: 'raceId',
+  foreignField: '_id',
+  justOne: true,
+})
+
 PassingSchema.virtual('event', {
   ref: 'Event',
   localField: 'eventId',
