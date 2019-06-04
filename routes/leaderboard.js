@@ -111,7 +111,10 @@ const leaderboardByRaceId = async (raceId) => {
     isFinished:
       race.lapCount && leaderPass && race.lapCount <= leaderPass.lapCount,
     leaderFinishTime: (leaderPass && leaderPass.date) || undefined,
-    passings: finalResults,
+    passings: finalResults.map((passing) => ({
+      raceId,
+      ...passing,
+    })),
   }
 }
 
