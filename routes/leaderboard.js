@@ -47,16 +47,15 @@ const leaderboardByRaceId = async (raceId) => {
     }).exec(),
     ridersByRaceId(raceId),
   ])
-  const enteredTransponders = _.chain(enteredRiders)
-    .map('transponder')
-    .compact()
+  const enteredRiderIds = _.chain(enteredRiders)
+    .map('_id')
+    .map(_.toString)
     .value()
   const passings = await Passing.find({
     eventId: race.eventId,
     date: {
       $gte: race.actualStart || new Date(0),
     },
-    $or: _.map(enteredTransponders, (transponder) => ({ transponder })),
   })
     .lean()
     .exec()
@@ -93,22 +92,29 @@ const leaderboardByRaceId = async (raceId) => {
       })
         .lean()
         .exec()
-        .then((rider = {}) => ({ ...pass, riderId: rider._id }))
+        .then((rider = {}) => ({ ...pass, riderId: rider && rider._id }))
     })
   )
-  const finalResults = _.map(resultPasses, (pass) => {
-    if (pass.lapCount <= 1) return pass
-    const lapLeaderboard = resultsForLap(pass.lapCount)
-    const leaderTransponder = _.first(lapLeaderboard).transponder
-    const leaderPass =
-      passingsByTransponder[leaderTransponder][pass.lapCount - 1]
-    const secondsDiff =
-      moment(pass.date).unix() - moment(leaderPass.date).unix()
-    return {
-      ...pass,
-      secondsDiff,
-    }
-  })
+  const finalResults = _.chain(resultPasses)
+    .map((pass) => {
+      if (
+        !pass.riderId ||
+        enteredRiderIds.indexOf(pass.riderId.toString()) === -1
+      ) return false
+      if (pass.lapCount <= 1) return pass
+      const lapLeaderboard = resultsForLap(pass.lapCount)
+      const leaderTransponder = _.first(lapLeaderboard).transponder
+      const leaderPass =
+        passingsByTransponder[leaderTransponder][pass.lapCount - 1]
+      const secondsDiff =
+        moment(pass.date).unix() - moment(leaderPass.date).unix()
+      return {
+        ...pass,
+        secondsDiff,
+      }
+    })
+    .compact()
+    .value()
   enteredRiders.forEach((rider) => {
     const pass = _.find(
       finalResults,
