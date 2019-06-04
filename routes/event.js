@@ -130,7 +130,7 @@ const generateCSV = asyncExpress(async (req, res) => {
       passing.rider.license,
       passing.rider.firstname,
       passing.rider.lastname,
-      passing.position,
+      (passing.dnf && 'dnf') || (passing.dns && 'dns') || passing.position,
       passing.rider.bibNumber,
       passing.rider.teamName,
     ])

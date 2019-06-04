@@ -6,12 +6,13 @@ const Entry = mongoose.model('Entry')
 const asyncExpress = require('async-express')
 const moment = require('moment')
 const _ = require('lodash')
+const nanoid = require('nanoid')
 
 module.exports = (app) => {
   app.get('/races/leaderboard', leaderboard)
 }
 
-async function transpondersByRaceId(_id) {
+async function ridersByRaceId(_id) {
   return Entry.find({
     raceId: mongoose.Types.ObjectId(_id),
   })
@@ -22,8 +23,6 @@ async function transpondersByRaceId(_id) {
         $or: _.map(entries, (entry) => ({ _id: entry.riderId })),
       })
     })
-    .then((riders) => _.map(riders, 'transponder'))
-    .then((transponders) => _.compact(transponders))
 }
 
 /**
@@ -42,12 +41,16 @@ const leaderboard = asyncExpress(async (req, res) => {
  *  }
  **/
 const leaderboardByRaceId = async (raceId) => {
-  const [race, enteredTransponders] = await Promise.all([
+  const [race, enteredRiders] = await Promise.all([
     Race.findOne({
       _id: mongoose.Types.ObjectId(raceId),
     }).exec(),
-    transpondersByRaceId(raceId),
+    ridersByRaceId(raceId),
   ])
+  const enteredTransponders = _.chain(enteredRiders)
+    .map('transponder')
+    .compact()
+    .value()
   const passings = await Passing.find({
     eventId: race.eventId,
     date: {
@@ -106,6 +109,24 @@ const leaderboardByRaceId = async (raceId) => {
       secondsDiff,
     }
   })
+  enteredRiders.forEach((rider) => {
+    const pass = _.find(
+      finalResults,
+      (passing) =>
+        passing.riderId && passing.riderId.toString() === rider._id.toString()
+    )
+    if (pass) return
+    finalResults.push({
+      _id: nanoid(),
+      transponder: 'XXXX00',
+      date: new Date(0),
+      riderId: rider._id,
+      seriesId: race.seriesId,
+      eventId: race.eventId,
+      raceId: race._id,
+      dns: true,
+    })
+  })
   const [leaderPass] = finalResults
   return {
     isFinished:
@@ -113,6 +134,10 @@ const leaderboardByRaceId = async (raceId) => {
     leaderFinishTime: (leaderPass && leaderPass.date) || undefined,
     passings: finalResults.map((passing) => ({
       raceId,
+      // DNF riders whose final lap is more than 10 mins behind leader finish time
+      dnf:
+        !passing.dns &&
+        moment(leaderPass.date).diff(moment(passing.date), 'minutes') > 10,
       ...passing,
     })),
   }
