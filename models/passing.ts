@@ -1,4 +1,16 @@
-import mongoose from 'mongoose'
+import mongoose, { Document } from 'mongoose'
+
+export interface _Passing extends Document {
+  date: string
+  transponder: string
+  riderId?: string
+  eventId: string
+  // Optional did not start/finish calculations and timing diff
+  lapCount?: number
+  dns?: boolean
+  dnf?: boolean
+  secondsDiff?: number
+}
 
 const PassingSchema = new mongoose.Schema(
   {
@@ -53,4 +65,4 @@ PassingSchema.virtual('event', {
   justOne: true,
 })
 
-mongoose.model('Passing', PassingSchema)
+export default mongoose.model<_Passing>('Passing', PassingSchema)
