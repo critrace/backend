@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import asyncExpress from 'async-express'
-import auth from '../middleware/auth'
+import auth, { authNotRequired } from '../middleware/auth'
 import { isSeriesPromoter } from './series'
 const Race = mongoose.model('Race')
 const Event = mongoose.model('Event')
@@ -9,7 +9,7 @@ const Bib = mongoose.model('Bib')
 const SeriesPromoter = mongoose.model('SeriesPromoter')
 
 export default (app: any) => {
-  app.get('/races', auth.notRequired, getRaces)
+  app.get('/races', authNotRequired, getRaces)
   app.post('/races', auth, create)
   app.post('/races/entry', auth, createEntry)
   app.get('/races/entries', getEntries)

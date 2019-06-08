@@ -1,7 +1,12 @@
-const jwt = require('jsonwebtoken')
-const mongoose = require('mongoose')
+import jwt from 'jsonwebtoken'
+import mongoose from 'mongoose'
+import express from 'express'
 
-module.exports = (req, res, next) => {
+export default (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
   const promoter = loadPromoter(req, res)
   if (!promoter) {
     res.status(401)
@@ -12,13 +17,17 @@ module.exports = (req, res, next) => {
   next()
 }
 
-module.exports.notRequired = (req, res, next) => {
+export const authNotRequired = (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
   const promoter = loadPromoter(req, res)
   req.promoter = promoter || {}
   next()
 }
 
-const loadPromoter = (req, res) => {
+const loadPromoter = (req: express.Request, res: express.Response) => {
   const token = req.body.token || req.query.token
   if (!token) return
   try {

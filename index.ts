@@ -62,5 +62,3 @@ if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'development') {
 if (process.env.NODE_ENV === 'development') {
   app.listen(4000, () => console.log('\n\nListening on port 4000'))
 }
-
-export default app

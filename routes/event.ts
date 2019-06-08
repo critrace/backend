@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import asyncExpress from 'async-express'
-import auth from '../middleware/auth'
+import auth, { authNotRequired } from '../middleware/auth'
 import { isSeriesPromoter } from './series'
 import _ from 'lodash'
 import csvStringify from 'csv-stringify'
@@ -14,7 +14,7 @@ const Bib = mongoose.model('Bib')
 const Rider = mongoose.model('Rider')
 
 export default (app: any) => {
-  app.get('/events', auth.notRequired, getEvent)
+  app.get('/events', authNotRequired, getEvent)
   app.get('/events/home', homeEvents)
   app.post('/events', auth, create)
   app.delete('/events', auth, deleteEvent)
