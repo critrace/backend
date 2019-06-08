@@ -3,42 +3,10 @@ import asyncExpress from 'async-express'
 import moment from 'moment'
 import _ from 'lodash'
 import nanoid from 'nanoid'
-const Passing = mongoose.model('Passing')
-const Rider = mongoose.model('Rider')
-const Race = mongoose.model('Race')
-const Entry = mongoose.model('Entry')
-
-class Model {
-  _id: string
-  static wrapDocs<T>(docs: mongoose.Document[]): T[] {
-    return docs.map((d) => this.wrapDoc(d))
-  }
-  static wrapDoc<T>(doc: mongoose.Document): T {
-    return (_.pick(doc, _.keys(this)) as unknown) as T
-  }
-}
-class _Race extends Model {
-  actualStart: string
-  name: string
-  eventId: string
-  seriesId: string
-  lapCount?: number
-}
-
-class _Passing extends Model {
-  date: string
-  transponder: string
-  riderId?: string
-  eventId: string
-  // Optional did not start/finish calculations and timing diff
-  dns?: boolean
-  dnf?: boolean
-  secondsDiff?: number
-}
-
-class _Rider extends Model {
-  transponder?: string
-}
+import Passing, { _Passing } from '../models/passing'
+import Rider, { _Rider } from '../models/rider'
+import Race from '../models/race'
+import Entry from '../models/entry'
 
 export default (app: any) => {
   app.get('/races/leaderboard', leaderboard)
@@ -54,23 +22,22 @@ const leaderboard = asyncExpress(async (req, res) => {
 /**
  * Retrieve an array of riderIds by raceId
  **/
-async function ridersByRaceId(_id: string | mongoose.Types.ObjectId) {
-  return Entry.find({
+async function ridersByRaceId(
+  _id: string | mongoose.Types.ObjectId
+): Promise<_Rider[]> {
+  const entries = await Entry.find({
     raceId: mongoose.Types.ObjectId(_id.toString()),
   })
     .lean()
     .exec()
-    .then((entries) => {
-      if (!entries.length) return []
-      return Rider.find({
-        $or: _.map((entries as unknown) as { riderId: string }[], (entry) => ({
-          _id: entry.riderId,
-        })),
-      })
-        .lean()
-        .exec()
-        .then((docs) => Model.wrapDocs<_Rider>(docs))
-    })
+  if (!entries.length) return []
+  return await Rider.find({
+    $or: _.map((entries as unknown) as { riderId: string }[], (entry) => ({
+      _id: entry.riderId,
+    })),
+  })
+    .lean()
+    .exec()
 }
 
 /**
@@ -81,7 +48,7 @@ function resultsForLap(number: number, passings: _Passing[]) {
     .sortBy('date')
     .groupBy('transponder')
     .value()
-  return _.chain(passingsByTransponder)
+  return (_.chain(passingsByTransponder)
     .map((passes) => {
       const passCount = passes.length
       // The latest pass we should evaluate for the race
@@ -95,7 +62,27 @@ function resultsForLap(number: number, passings: _Passing[]) {
     .reverse()
     .sortBy('lapCount')
     .reverse()
-    .value()
+    .value() as unknown) as _Passing[]
+}
+
+/**
+ * Load passings and associate any passings without a transponder with the relevant rider
+ **/
+async function loadPassings(where: any) {
+  const _passings: _Passing[] = await Passing.find(where)
+    .lean()
+    .exec()
+  return await Promise.all(
+    _passings.map(async (pass: _Passing) => {
+      if (pass.riderId) return pass
+      const rider = await Rider.findOne({
+        transponder: pass.transponder,
+      })
+        .lean()
+        .exec()
+      return { ...pass, riderId: rider && rider._id } as _Passing
+    })
+  )
 }
 
 /**
@@ -113,32 +100,16 @@ export const leaderboardByRaceId = async (raceId: string) => {
     Race.findOne({
       _id: mongoose.Types.ObjectId(raceId),
     })
-      .exec()
-      .then((doc) => Model.wrapDoc<_Race>(doc)),
+      .lean()
+      .exec(),
   ])
   // Load passings with riderId's retroactively applied by matching transponder to rider
-  const passings = await Passing.find({
+  const passings = await loadPassings({
     eventId: race.eventId,
     date: {
       $gte: race.actualStart || new Date(0),
     },
   })
-    .lean()
-    .exec()
-    .then((docs) => Model.wrapDocs<_Passing>(docs))
-    .then((passings) =>
-      Promise.all(
-        passings.map((pass) => {
-          if (pass.riderId) return Promise.resolve(pass)
-          return Rider.findOne({
-            transponder: pass.transponder,
-          })
-            .lean()
-            .exec()
-            .then((rider = {}) => ({ ...pass, riderId: rider && rider._id }))
-        })
-      )
-    )
   const passingsByTransponder = _.chain(passings)
     .sortBy('date')
     .groupBy('transponder')
@@ -180,7 +151,7 @@ export const leaderboardByRaceId = async (raceId: string) => {
         passing.riderId && passing.riderId.toString() === rider._id.toString()
     )
     if (pass) return
-    finalResults.push({
+    finalResults.push(({
       _id: nanoid(),
       transponder: 'XXXX00',
       date: new Date(0).toISOString(),
@@ -189,7 +160,7 @@ export const leaderboardByRaceId = async (raceId: string) => {
       eventId: race.eventId,
       raceId: race._id,
       dns: true,
-    })
+    } as unknown) as _Passing)
   })
   const [leaderPass] = finalResults
   return {
