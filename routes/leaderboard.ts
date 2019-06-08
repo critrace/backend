@@ -72,17 +72,24 @@ async function loadPassings(where: any) {
   const _passings: _Passing[] = await Passing.find(where)
     .lean()
     .exec()
-  return await Promise.all(
-    _passings.map(async (pass: _Passing) => {
-      if (pass.riderId) return pass
-      const rider = await Rider.findOne({
-        transponder: pass.transponder,
-      })
-        .lean()
-        .exec()
-      return { ...pass, riderId: rider && rider._id } as _Passing
-    })
-  )
+  const transponders = _.chain(_passings)
+    .map('transponder')
+    .compact()
+    .value()
+  const riders = await Rider.find({
+    transponder: {
+      $in: transponders,
+    },
+  })
+    .lean()
+    .exec()
+  const ridersByTransponder = _.keyBy(riders, 'transponder')
+  return _passings.map((pass: _Passing) => {
+    if (pass.riderId) return pass
+    const rider = ridersByTransponder[pass.transponder]
+    if (!rider) return pass
+    return { ...pass, riderId: rider && rider._id } as _Passing
+  })
 }
 
 /**
@@ -120,15 +127,20 @@ export const leaderboardByRaceId = async (raceId: string) => {
     .map('_id')
     .map(_.toString)
     .value()
+  const emptyPassings: _Passing[] = []
   // Add some lap metadata to each passing and order in leaderboard position for
   // criterium race, should probably version this or clean it up or something
   // you lazy fuck
   const finalResults = _.chain(results)
     .map((pass) => {
-      if (
-        !pass.riderId ||
-        enteredRiderIds.indexOf(pass.riderId.toString()) === -1
-      ) return false
+      // Store the empty passings to associate with riders in the UI (in the case where the transponder is not linked)
+      if (!pass.riderId) {
+        emptyPassings.push(pass)
+        return false
+      }
+      // Don't evaluate if rider is not in race
+      if (enteredRiderIds.indexOf(pass.riderId.toString()) === -1) return false
+      // Don't calculate pass metadata if the lapnumber is less than or equal to one
       if (pass.lapCount <= 1) return pass
       const lapLeaderboard = resultsForLap(pass.lapCount, passings)
       const leaderTransponder = _.first(lapLeaderboard).transponder
@@ -136,6 +148,7 @@ export const leaderboardByRaceId = async (raceId: string) => {
         passingsByTransponder[leaderTransponder][pass.lapCount - 1]
       const secondsDiff =
         moment(pass.date).unix() - moment(leaderPass.date).unix()
+      // Return an array of modified _Passing types in their final positions chronologically
       return {
         ...pass,
         secondsDiff,
@@ -175,5 +188,6 @@ export const leaderboardByRaceId = async (raceId: string) => {
         moment(leaderPass.date).diff(moment(passing.date), 'minutes') > 10,
       ...passing,
     })),
+    emptyPassings,
   }
 }
