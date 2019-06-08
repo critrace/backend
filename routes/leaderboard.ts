@@ -29,7 +29,6 @@ async function ridersByRaceId(
     raceId: mongoose.Types.ObjectId(_id.toString()),
   })
     .lean()
-<<<<<<< HEAD
     .exec()
   if (!entries.length) return []
   return await Rider.find({
@@ -39,17 +38,6 @@ async function ridersByRaceId(
   })
     .lean()
     .exec()
-=======
-    .exec()
-  if (!entries.length) return []
-  return await Rider.find({
-    $or: _.map((entries as unknown) as { riderId: string }[], (entry) => ({
-      _id: entry.riderId,
-    })),
-  })
-    .lean()
-    .exec()
->>>>>>> c48525027c0e0ab4eda6774c632698f5d1d541ec
 }
 
 /**
@@ -139,10 +127,7 @@ export const leaderboardByRaceId = async (raceId: string) => {
     .map('_id')
     .map(_.toString)
     .value()
-<<<<<<< HEAD
   const emptyPassings: _Passing[] = []
-=======
->>>>>>> c48525027c0e0ab4eda6774c632698f5d1d541ec
   // Add some lap metadata to each passing and order in leaderboard position for
   // criterium race, should probably version this or clean it up or something
   // you lazy fuck
