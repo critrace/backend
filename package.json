@@ -21,11 +21,13 @@
   },
   "nyc": {
     "include": [
+      "build/*.js",
       "routes/*.ts",
       "models/*.ts",
       "middleware/*.ts"
     ],
-    "sourceMap": true
+    "sourceMap": true,
+    "produce-source-map": true
   },
   "repository": {
     "type": "git",
