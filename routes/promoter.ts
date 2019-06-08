@@ -1,12 +1,12 @@
-const mongoose = require('mongoose')
+import mongoose from 'mongoose'
+import asyncExpress from 'async-express'
+import auth from '../middleware/auth'
+import emailValidator from 'email-validator'
+import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
 const Promoter = mongoose.model('Promoter')
-const asyncExpress = require('async-express')
-const emailValidator = require('email-validator')
-const bcrypt = require('bcrypt')
-const auth = require('../middleware/auth')
-const jwt = require('jsonwebtoken')
 
-module.exports = (app) => {
+export default (app: any) => {
   app.post('/promoters', create)
   app.post('/promoters/login', login)
   app.get('/promoters', auth, load)

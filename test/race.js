@@ -1,6 +1,6 @@
 import test from 'ava'
 import supertest from 'supertest'
-import app from '..'
+import app from '../build'
 import nanoid from 'nanoid'
 import moment from 'moment'
 import {
@@ -330,7 +330,7 @@ test('should get leaderboard', async (t) => {
     .query({
       raceId: race._id,
     })
-  t.true(!emptyLeaderboard.passings)
+  t.true(!emptyLeaderboard.passings.length)
   await supertest(app)
     .post('/races/entry')
     .send({

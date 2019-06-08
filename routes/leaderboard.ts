@@ -1,20 +1,20 @@
-const mongoose = require('mongoose')
+import mongoose from 'mongoose'
+import asyncExpress from 'async-express'
+import moment from 'moment'
+import _ from 'lodash'
+import nanoid from 'nanoid'
 const Passing = mongoose.model('Passing')
 const Rider = mongoose.model('Rider')
 const Race = mongoose.model('Race')
 const Entry = mongoose.model('Entry')
-const asyncExpress = require('async-express')
-const moment = require('moment')
-const _ = require('lodash')
-const nanoid = require('nanoid')
 
-module.exports = (app) => {
+export default (app: any) => {
   app.get('/races/leaderboard', leaderboard)
 }
 
-async function ridersByRaceId(_id) {
+async function ridersByRaceId(_id: string | mongoose.Types.ObjectId) {
   return Entry.find({
-    raceId: mongoose.Types.ObjectId(_id),
+    raceId: mongoose.Types.ObjectId(_id.toString()),
   })
     .exec()
     .then((entries) => {
@@ -40,7 +40,7 @@ const leaderboard = asyncExpress(async (req, res) => {
  *   leaderFinishTime: ISODate,
  *  }
  **/
-const leaderboardByRaceId = async (raceId) => {
+export const leaderboardByRaceId = async (raceId: string) => {
   const [race, enteredRiders] = await Promise.all([
     Race.findOne({
       _id: mongoose.Types.ObjectId(raceId),
@@ -148,5 +148,3 @@ const leaderboardByRaceId = async (raceId) => {
     })),
   }
 }
-
-module.exports.leaderboardByRaceId = leaderboardByRaceId

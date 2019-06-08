@@ -1,13 +1,13 @@
-const mongoose = require('mongoose')
+import asyncExpress from 'async-express'
+import auth from '../middleware/auth'
+import { isSeriesPromoter } from './series'
+import mongoose from 'mongoose'
 const Bib = mongoose.model('Bib')
 const Entry = mongoose.model('Entry')
 const SeriesPromoter = mongoose.model('SeriesPromoter')
 const Race = mongoose.model('Race')
-const asyncExpress = require('async-express')
-const auth = require('../middleware/auth')
-const { isSeriesPromoter } = require('./series')
 
-module.exports = (app) => {
+export default (app: any) => {
   app.get('/bibs', getBibs)
   app.post('/bibs', auth, create)
   app.delete('/bibs', auth, deleteBib)

@@ -1,6 +1,6 @@
 import test from 'ava'
 import supertest from 'supertest'
-import app from '..'
+import app from '../build'
 import randomObjectId from 'random-objectid'
 import {
   createPromoter,

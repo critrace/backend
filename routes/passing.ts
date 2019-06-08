@@ -1,20 +1,20 @@
-const mongoose = require('mongoose')
+import mongoose from 'mongoose'
+import asyncExpress from 'async-express'
+import auth from '../middleware/auth'
+import multer from 'multer'
+import csvParse from 'csv-parse'
+import moment from 'moment'
+import _ from 'lodash'
+import { isSeriesPromoter } from './series'
 const Passing = mongoose.model('Passing')
 const Event = mongoose.model('Event')
 const Rider = mongoose.model('Rider')
 const SeriesPromoter = mongoose.model('SeriesPromoter')
-const asyncExpress = require('async-express')
-const auth = require('../middleware/auth')
-const multer = require('multer')
 const upload = multer({
   storage: multer.memoryStorage(),
 })
-const csvParse = require('csv-parse')
-const moment = require('moment')
-const _ = require('lodash')
-const { isSeriesPromoter } = require('./series')
 
-module.exports = (app) => {
+export default (app: any) => {
   app.get('/passings', load)
   app.post('/passings', auth, create)
   app.delete('/passings', auth, _delete)

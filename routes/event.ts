@@ -1,20 +1,20 @@
-const mongoose = require('mongoose')
+import mongoose from 'mongoose'
+import asyncExpress from 'async-express'
+import auth, { authNotRequired } from '../middleware/auth'
+import { isSeriesPromoter } from './series'
+import _ from 'lodash'
+import csvStringify from 'csv-stringify'
+import { leaderboardByRaceId } from './leaderboard'
+import moment from 'moment'
 const Event = mongoose.model('Event')
 const Race = mongoose.model('Race')
 const Entry = mongoose.model('Entry')
 const SeriesPromoter = mongoose.model('SeriesPromoter')
 const Bib = mongoose.model('Bib')
 const Rider = mongoose.model('Rider')
-const asyncExpress = require('async-express')
-const auth = require('../middleware/auth')
-const { isSeriesPromoter } = require('./series')
-const _ = require('lodash')
-const csvStringify = require('csv-stringify')
-const { leaderboardByRaceId } = require('./leaderboard')
-const moment = require('moment')
 
-module.exports = (app) => {
-  app.get('/events', auth.notRequired, getEvent)
+export default (app: any) => {
+  app.get('/events', authNotRequired, getEvent)
   app.get('/events/home', homeEvents)
   app.post('/events', auth, create)
   app.delete('/events', auth, deleteEvent)
