@@ -1,5 +1,5 @@
 import test from 'ava'
-import app from '..'
+import app from '../build'
 import nanoid from 'nanoid'
 import supertest from 'supertest'
 import { createPromoter } from './api'

@@ -1,5 +1,5 @@
 import supertest from 'supertest'
-import app from '..'
+import app from '../build'
 import nanoid from 'nanoid'
 import moment from 'moment'
 import test from 'ava'

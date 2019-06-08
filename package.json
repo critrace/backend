@@ -7,9 +7,10 @@
     "clean": "rm -rf build || true",
     "start": "npm run build && node -e \"require('dotenv').config(); require('./build').listen(4000);\"",
     "pretest": "docker kill critrace-test || true && docker run --name=critrace-test -d --rm -p 27017:27017 mongo:4.0.9-xenial",
-    "test": "nyc ava",
+    "test": "npm run build:test && nyc ava",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "build": "npm run clean && webpack-cli",
+    "build:test": "npm run clean && webpack-cli --config webpack.t.js",
     "build:prod": "npm run clean && webpack-cli --config webpack.prod.js",
     "deploy": "npm run build:prod && now --target production -t $NOW_TOKEN --scope critresult"
   },
@@ -20,10 +21,11 @@
   },
   "nyc": {
     "include": [
-      "routes/*.js",
-      "models/*.js",
-      "middleware/*.js"
-    ]
+      "routes/*.ts",
+      "models/*.ts",
+      "middleware/*.ts"
+    ],
+    "sourceMap": true
   },
   "repository": {
     "type": "git",

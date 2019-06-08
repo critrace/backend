@@ -5,11 +5,11 @@
     "DB_URI": "@db-uri",
     "WEB_TOKEN_SECRET": "@web-token-secret"
   },
-  "builds": [{ "src": "index.js", "use": "@now/node" }],
+  "builds": [{ "src": "build/index.js", "use": "@now/node" }],
   "routes": [
     {
       "src": "(.*)",
-      "dest": "/index.js",
+      "dest": "build/index.js",
       "methods": ["GET", "POST", "DELETE", "PUT", "OPTIONS"]
     }
   ]
