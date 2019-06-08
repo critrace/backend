@@ -3,7 +3,7 @@ module.exports = Object.assign(config, {
   optimization: {
     nodeEnv: false,
   },
-  devtool: 'source-map',
+  devtool: 'eval',
   module: {
     rules: [
       ...config.module.rules,

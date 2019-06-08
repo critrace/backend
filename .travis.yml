@@ -6,7 +6,7 @@ node_js:
 
 script:
   - npm test
-  - npm run coverage
+  - npm run coverage:ci
 
 after_success:
   - test "$TRAVIS_BRANCH" = "master" && npm run deploy
