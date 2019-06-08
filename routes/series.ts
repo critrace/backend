@@ -1,13 +1,13 @@
-const mongoose = require('mongoose')
+import mongoose from 'mongoose'
+import asyncExpress from 'async-express'
+import auth from '../middleware/auth'
 const Series = mongoose.model('Series')
 const SeriesPromoter = mongoose.model('SeriesPromoter')
 const Promoter = mongoose.model('Promoter')
 const Race = mongoose.model('Race')
 const Event = mongoose.model('Event')
-const asyncExpress = require('async-express')
-const auth = require('../middleware/auth')
 
-module.exports = (app) => {
+export default (app: any) => {
   app.get('/series', getSeries)
   app.post('/series', auth, create)
   app.get('/series/authenticated', auth, getOwnSeries)
@@ -16,9 +16,7 @@ module.exports = (app) => {
   app.get('/series/race/latest', latestRaceRedirect)
 }
 
-module.exports.isSeriesPromoter = isSeriesPromoter
-
-async function isSeriesPromoter(seriesId, promoterId) {
+export async function isSeriesPromoter(seriesId: string, promoterId: string) {
   const model = await SeriesPromoter.findOne({
     promoterId: mongoose.Types.ObjectId(promoterId),
     seriesId: mongoose.Types.ObjectId(seriesId),

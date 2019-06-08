@@ -47,14 +47,14 @@ const mongoDisconnect = asyncExpress(async (_1, _2, next) => {
 app.use(mongoConnect)
 
 // Load the routes on the express router
-require('./routes/event')(app)
-require('./routes/promoter')(app)
-require('./routes/race')(app)
-require('./routes/rider')(app)
-require('./routes/series')(app)
-require('./routes/bib')(app)
-require('./routes/passing')(app)
-require('./routes/leaderboard')(app)
+require('./routes/event').default(app)
+require('./routes/promoter').default(app)
+require('./routes/race').default(app)
+require('./routes/rider').default(app)
+require('./routes/series').default(app)
+require('./routes/bib').default(app)
+require('./routes/passing').default(app)
+require('./routes/leaderboard').default(app)
 
 if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'development') {
   app.use(mongoDisconnect)
@@ -63,4 +63,4 @@ if (process.env.NODE_ENV === 'development') {
   app.listen(4000, () => console.log('\n\nListening on port 4000'))
 }
 
-module.exports = app
+export default app

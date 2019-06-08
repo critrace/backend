@@ -1,16 +1,16 @@
-const mongoose = require('mongoose')
+import mongoose from 'mongoose'
+import asyncExpress from 'async-express'
+import auth from '../middleware/auth'
+import _ from 'lodash'
+import multer from 'multer'
+import moment from 'moment'
+import csvParse from 'csv-parse'
 const Rider = mongoose.model('Rider')
-const asyncExpress = require('async-express')
-const auth = require('../middleware/auth')
-const _ = require('lodash')
-const multer = require('multer')
 const upload = multer({
   storage: multer.memoryStorage(),
 })
-const moment = require('moment')
-const csvParse = require('csv-parse')
 
-module.exports = (app) => {
+export default (app: any) => {
   app.get('/riders', getRiders)
   app.post('/riders', auth, create)
   app.get('/riders/search', search)
