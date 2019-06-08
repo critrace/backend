@@ -26,6 +26,9 @@
       "models/*.ts",
       "middleware/*.ts"
     ],
+    "extension": [
+      ".ts"
+    ],
     "sourceMap": true,
     "produce-source-map": true
   },
