@@ -1,4 +1,10 @@
-import mongoose from 'mongoose'
+import mongoose, { Document } from 'mongoose'
+
+export interface _Rider extends Document {
+  transponder?: string
+  firstname: string
+  lastname: string
+}
 
 const RiderSchema = new mongoose.Schema(
   {
@@ -93,4 +99,4 @@ RiderSchema.virtual('bibs', {
   foreignField: 'riderId',
 })
 
-mongoose.model('Rider', RiderSchema)
+export default mongoose.model<_Rider>('Rider', RiderSchema)

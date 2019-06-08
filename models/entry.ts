@@ -1,4 +1,12 @@
-import mongoose from 'mongoose'
+import mongoose, { Document } from 'mongoose'
+
+interface _Entry extends Document {
+  riderId: string
+  raceId: string
+  eventId: string
+  seriesiId: string
+  bibId: string
+}
 
 const EntrySchema = new mongoose.Schema(
   {
@@ -49,4 +57,4 @@ EntrySchema.virtual('rider', {
   justOne: true,
 })
 
-mongoose.model('Entry', EntrySchema)
+export default mongoose.model<_Entry>('Entry', EntrySchema)

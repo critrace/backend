@@ -108,6 +108,17 @@ test('should fail to load invalid promoter', async (t) => {
   t.pass()
 })
 
+test('should 404 on bad login', async (t) => {
+  await supertest(app)
+    .post('/promoters/login')
+    .send({
+      email: `${nanoid()}@email.com`,
+      password: 'password',
+    })
+    .expect(404)
+  t.pass()
+})
+
 test('should update promoter email', async (t) => {
   const UPDATE_EMAIL = 'update@email.com'
   const { body: promoter } = await createPromoter()
@@ -121,13 +132,6 @@ test('should update promoter email', async (t) => {
       token: promoter.token,
       email: UPDATE_EMAIL,
     })
-  await supertest(app)
-    .post('/promoters/login')
-    .send({
-      email: promoter.email,
-      password: 'password',
-    })
-    .expect(404)
   await supertest(app)
     .post('/promoters/login')
     .send({
