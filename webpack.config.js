@@ -4,7 +4,7 @@ const nodeExternals = require('webpack-node-externals')
 module.exports = {
   mode: 'development',
   target: 'node',
-  externals: [ nodeExternals() ],
+  externals: [nodeExternals()],
   entry: {
     main: './index.ts',
   },
@@ -12,6 +12,8 @@ module.exports = {
     path: path.resolve(__dirname, 'build'),
     filename: 'index.js',
     publicPath: '/',
+    libraryTarget: 'commonjs2',
+    libraryExport: 'default',
   },
   resolve: {
     extensions: ['*', '.ts', '.js'],

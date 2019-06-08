@@ -13,6 +13,8 @@ export default (
     res.send('No authentication token supplied in body or query.')
     return
   }
+  req.query.promoter = promoter
+  // Deprecated
   req.promoter = promoter
   next()
 }
@@ -23,6 +25,8 @@ export const authNotRequired = (
   next: express.NextFunction
 ) => {
   const promoter = loadPromoter(req, res)
+  req.query.promoter = promoter || {}
+  // Deprecated
   req.promoter = promoter || {}
   next()
 }

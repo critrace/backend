@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "clean": "rm -rf build || true",
-    "start": "npm run build && node -e \"require('dotenv').config(); require('./build');\"",
+    "start": "npm run build && node -e \"require('dotenv').config(); require('./build').listen(4000);\"",
     "pretest": "docker kill critrace-test || true && docker run --name=critrace-test -d --rm -p 27017:27017 mongo:4.0.9-xenial",
     "test": "nyc ava",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
