@@ -207,13 +207,13 @@ const associateTranspondersByEvent = asyncExpress(async (req, res) => {
     res.json({ message: 'Not authorized to associate rider id for passings' })
     return
   }
-  const existing = await Passing.find({
+  const existing = (await Passing.find({
     eventId: mongoose.Types.ObjectId(eventId),
     transponder,
     riderId: {
       $exists: true,
     },
-  }).exec()
+  }).exec()).filter((pass) => pass.riderId.toString() !== riderId)
   if (existing.length !== 0 && req.body.force !== true) {
     return res.status(422).json({
       message:
