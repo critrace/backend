@@ -108,6 +108,14 @@ const generateCSV = asyncExpress(async (req, res) => {
     'riderId'
   )
 
+  const padLicense = (license: string, length: number) => {
+    if (license.length >= length) return license
+    const padding = [...new Array(length - license.length)]
+      .map(() => '0')
+      .join('')
+    return `${padding}${license}`
+  }
+
   const submissionFormatted = _.chain(resultPassings)
     .map((passing) => {
       const _passing = passingsById[passing._id.toString()]
@@ -129,9 +137,9 @@ const generateCSV = asyncExpress(async (req, res) => {
       passing.race.category,
       passing.race.gender,
       '',
-      passing.rider.license,
-      passing.rider.firstname,
-      passing.rider.lastname,
+      padLicense(passing.rider.license, 7),
+      passing.rider.firstname.toLowerCase(),
+      passing.rider.lastname.toUpperCase(),
       (passing.dnf && 'dnf') || (passing.dns && 'dns') || passing.position,
       passing.rider.bibNumber,
       passing.rider.teamName,
