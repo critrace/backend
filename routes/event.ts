@@ -55,23 +55,25 @@ const generateCSV = asyncExpress(async (req, res) => {
   )
   // All the passings for the races in a single array
   const resultPassings = _.chain(leaderboards)
-    .map((leaderboard) => ({
-      ...leaderboard,
-      passings: leaderboard.passings.map((passing, index) => ({
+    .map('passings')
+    .map((passings) =>
+      // Grab the position while the race results are still chunked
+      _.map(passings, (passing, index) => ({
         position: index + 1,
         ...passing,
-      })),
-    }))
-    .map((leaderboard) => leaderboard.passings)
+      }))
+    )
     .flatten()
     .value()
 
   const passingsById = _.keyBy(resultPassings, '_id')
-
   const racesById = _.keyBy(
     await Race.find({
       _id: {
-        $in: _.map(resultPassings, 'raceId'),
+        $in: _.chain(resultPassings)
+          .map('raceId')
+          .uniqBy((raceId: mongoose.Types.ObjectId) => raceId.toString())
+          .value(),
       },
     })
       .lean()
