@@ -5,6 +5,7 @@ import _ from 'lodash'
 import multer from 'multer'
 import moment from 'moment'
 import csvParse from 'csv-parse'
+import nanoid from 'nanoid'
 const Rider = mongoose.model('Rider')
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -106,6 +107,7 @@ const create = asyncExpress(async (req, res) => {
     licenseExpirationDate.setDate(licenseExpirationDate.getDate() + 1)
     req.body.licenseExpirationDate = licenseExpirationDate
   }
+  req.body.license = req.body.license || nanoid(10)
   const created = await Rider.create(req.body)
   res.json(created)
 })
