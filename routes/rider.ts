@@ -5,7 +5,7 @@ import _ from 'lodash'
 import multer from 'multer'
 import moment from 'moment'
 import csvParse from 'csv-parse'
-import nanoid from 'nanoid'
+import randomstring from 'randomstring'
 const Rider = mongoose.model('Rider')
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -76,7 +76,7 @@ const importRiders = asyncExpress(async (req, res) => {
       ).exec()
       if (result.n === 0) {
         // Need to create the rider
-        await Rider.create(rider)
+        // await Rider.create(rider)
       }
       index % 50 === 0 &&
         console.log(`${index}/${riders.length} riders updated`)
@@ -107,7 +107,12 @@ const create = asyncExpress(async (req, res) => {
     licenseExpirationDate.setDate(licenseExpirationDate.getDate() + 1)
     req.body.licenseExpirationDate = licenseExpirationDate
   }
-  req.body.license = req.body.license || nanoid(10)
+  req.body.license =
+    req.body.license ||
+    randomstring.generate({
+      length: 13,
+      charset: 'numeric',
+    })
   const created = await Rider.create(req.body)
   res.json(created)
 })
