@@ -19,6 +19,7 @@ export default (app: any) => {
   app.post('/passings', auth, create)
   app.delete('/passings', auth, _delete)
   app.post('/passings/import', auth, upload.single('csv'), importPassings)
+  app.post('/passings/associate', auth, associateTranspondersByEvent)
 }
 
 const importPassings = asyncExpress(async (req, res) => {
@@ -171,5 +172,62 @@ const _delete = asyncExpress(async (req, res) => {
   await Passing.deleteOne({
     _id: mongoose.Types.ObjectId(req.body._id),
   }).exec()
+  res.status(204).end()
+})
+
+/**
+ * Accepts transponder, eventId, riderId
+ **/
+const associateTranspondersByEvent = asyncExpress(async (req, res) => {
+  const { transponder, eventId, riderId } = req.body
+  if (!transponder) {
+    return res.status(400).json({ message: 'Missing transponder parameter' })
+  } else if (!eventId) {
+    return res.status(400).json({ message: 'Missing eventId parameter' })
+  } else if (!riderId) {
+    return res.status(400).json({ message: 'Missing riderId to parameter' })
+  }
+  const event = await Event.findOne({
+    _id: mongoose.Types.ObjectId(eventId),
+  }).exec()
+  const rider = await Rider.findOne({
+    _id: mongoose.Types.ObjectId(riderId),
+  }).exec()
+  if (!event) {
+    return res
+      .status(404)
+      .json({ message: `Unable to find event by id "${eventId}"` })
+  } else if (!rider) {
+    return res
+      .status(404)
+      .json({ message: `Unable to find rider by id "${riderId}"` })
+  }
+  if (!(await isSeriesPromoter(event.seriesId, req.promoter._id))) {
+    res.status(401)
+    res.json({ message: 'Not authorized to associate rider id for passings' })
+    return
+  }
+  const existing = await Passing.find({
+    eventId: mongoose.Types.ObjectId(eventId),
+    transponder,
+    riderId: {
+      $exists: true,
+    },
+  }).exec()
+  if (existing.length !== 0 && req.body.force !== true) {
+    return res.status(422).json({
+      message:
+        'Existing passings bound to riderId found. Aborting. Pass "force: true" in body to override',
+    })
+  }
+  await Passing.updateMany(
+    {
+      eventId: mongoose.Types.ObjectId(eventId),
+      transponder,
+    },
+    {
+      riderId,
+    }
+  ).exec()
   res.status(204).end()
 })
