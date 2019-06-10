@@ -41,7 +41,9 @@ async function ridersByRaceId(
 }
 
 /**
- * Calculates results from the given transponder from the target lap
+ * Calculates results from the given transponders from the target lap
+ *
+ * If a rider hasn't completed number laps the last pass is provided
  **/
 function resultsForLap(number: number, passings: _Passing[]) {
   const passingsByTransponder = _.chain(passings)
@@ -58,9 +60,13 @@ function resultsForLap(number: number, passings: _Passing[]) {
         lapCount: Math.min(passCount, number),
       }
     })
+    // Sort in ascending order, old to new
     .sortBy('date')
+    // Reverse to old to new (descending)
     .reverse()
+    // Sort again by lapCount, effectively sorting by lapCount asc, date desc
     .sortBy('lapCount')
+    // Reverse again to get lapCount desc, date asc
     .reverse()
     .value() as unknown) as _Passing[]
 }
@@ -111,18 +117,24 @@ export const leaderboardByRaceId = async (raceId: string) => {
       .exec(),
   ])
   // Load passings with riderId's retroactively applied by matching transponder to rider
-  const passings = await loadPassings({
+  const _passings = await loadPassings({
     eventId: race.eventId,
     date: {
       $gte: race.actualStart || new Date(0),
     },
   })
+  // Take off any passings from 5 minutes after the current leader finish
+  const _results = resultsForLap(race.lapCount || Number.MAX_VALUE, _passings)
+  const upperLimit = moment(_results[0].date).add(5, 'minutes')
+  const passings = _.filter(_passings, (passing) =>
+    moment(passing.date).isBefore(upperLimit)
+  )
+  // Now calculate the results
+  const results = resultsForLap(race.lapCount || Number.MAX_VALUE, passings)
   const passingsByTransponder = _.chain(passings)
     .sortBy('date')
     .groupBy('transponder')
     .value()
-
-  const results = resultsForLap(race.lapCount || Number.MAX_VALUE, passings)
   const enteredRiderIds = _.chain(enteredRiders)
     .map('_id')
     .map(_.toString)
