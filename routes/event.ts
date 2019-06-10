@@ -55,23 +55,25 @@ const generateCSV = asyncExpress(async (req, res) => {
   )
   // All the passings for the races in a single array
   const resultPassings = _.chain(leaderboards)
-    .map((leaderboard) => ({
-      ...leaderboard,
-      passings: leaderboard.passings.map((passing, index) => ({
+    .map('passings')
+    .map((passings) =>
+      // Grab the position while the race results are still chunked
+      _.map(passings, (passing, index) => ({
         position: index + 1,
         ...passing,
-      })),
-    }))
-    .map((leaderboard) => leaderboard.passings)
+      }))
+    )
     .flatten()
     .value()
 
   const passingsById = _.keyBy(resultPassings, '_id')
-
   const racesById = _.keyBy(
     await Race.find({
       _id: {
-        $in: _.map(resultPassings, 'raceId'),
+        $in: _.chain(resultPassings)
+          .map('raceId')
+          .uniqBy((raceId: mongoose.Types.ObjectId) => raceId.toString())
+          .value(),
       },
     })
       .lean()
@@ -106,6 +108,14 @@ const generateCSV = asyncExpress(async (req, res) => {
     'riderId'
   )
 
+  const padLicense = (license: string, length: number) => {
+    if (license.length >= length) return license
+    const padding = [...new Array(length - license.length)]
+      .map(() => '0')
+      .join('')
+    return `${padding}${license}`
+  }
+
   const submissionFormatted = _.chain(resultPassings)
     .map((passing) => {
       const _passing = passingsById[passing._id.toString()]
@@ -127,9 +137,9 @@ const generateCSV = asyncExpress(async (req, res) => {
       passing.race.category,
       passing.race.gender,
       '',
-      passing.rider.license,
-      passing.rider.firstname,
-      passing.rider.lastname,
+      padLicense(passing.rider.license, 7),
+      passing.rider.firstname.toLowerCase(),
+      passing.rider.lastname.toUpperCase(),
       (passing.dnf && 'dnf') || (passing.dns && 'dns') || passing.position,
       passing.rider.bibNumber,
       passing.rider.teamName,
