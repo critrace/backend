@@ -163,6 +163,7 @@ export const leaderboardByRaceId = async (raceId: string) => {
       // Return an array of modified _Passing types in their final positions chronologically
       return {
         ...pass,
+        raceId,
         secondsDiff,
       }
     })
