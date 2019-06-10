@@ -213,7 +213,7 @@ const associateTranspondersByEvent = asyncExpress(async (req, res) => {
     riderId: {
       $exists: true,
     },
-  }).exec()).filter((pass) => pass.riderId.toString() !== riderId)
+  }).exec()).filter((pass) => pass.rider && pass.riderId.toString() !== riderId)
   if (existing.length !== 0 && req.body.force !== true) {
     return res.status(422).json({
       message:
