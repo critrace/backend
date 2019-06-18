@@ -135,7 +135,10 @@ const update = asyncExpress(async (req, res) => {
     })
     return
   }
-  if (req.body.changes.bibNumber) {
+  if (
+    req.body.changes.bibNumber &&
+    req.body.changes.bibNumber !== bib.bibNumber
+  ) {
     const existingBib = await Bib.findOne({
       bibNumber: req.body.changes.bibNumber,
       seriesId: mongoose.Types.ObjectId(bib.seriesId),
