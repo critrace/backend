@@ -135,6 +135,18 @@ const update = asyncExpress(async (req, res) => {
     })
     return
   }
+  if (req.body.changes.bibNumber) {
+    const existingBib = await Bib.findOne({
+      bibNumber: req.body.changes.bibNumber,
+      seriesId: mongoose.Types.ObjectId(bib.seriesId),
+    }).exec()
+    if (existingBib) {
+      res.status(400).json({
+        message: 'Bib number is taken',
+      })
+      return
+    }
+  }
   const seriesPromoter = await SeriesPromoter.findOne({
     seriesId: mongoose.Types.ObjectId(bib.seriesId),
     promoterId: mongoose.Types.ObjectId(req.promoter._id),
