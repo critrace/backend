@@ -1,6 +1,10 @@
 import mongoose from 'mongoose'
-import asyncExpress from 'async-express'
-import auth, { authNotRequired } from '../middleware/auth'
+import express from 'express'
+import auth, {
+  authNotRequired,
+  AuthReq,
+  OptionalAuthReq,
+} from '../middleware/auth'
 import { isSeriesPromoter } from './series'
 const Race = mongoose.model('Race')
 const Event = mongoose.model('Event')
@@ -8,7 +12,7 @@ const Entry = mongoose.model('Entry')
 const Bib = mongoose.model('Bib')
 const SeriesPromoter = mongoose.model('SeriesPromoter')
 
-export default (app: any) => {
+export default (app: express.Application) => {
   app.get('/races', authNotRequired, getRaces)
   app.post('/races', auth, create)
   app.post('/races/entry', auth, createEntry)
@@ -18,7 +22,7 @@ export default (app: any) => {
   app.put('/races', auth, update)
 }
 
-const create = asyncExpress(async (req, res) => {
+const create = async (req: AuthReq, res: express.Response) => {
   const event = await Event.findOne({
     _id: mongoose.Types.ObjectId(req.body.eventId),
   })
@@ -32,9 +36,9 @@ const create = asyncExpress(async (req, res) => {
   }
   const created = await Race.create({ ...req.body, seriesId: event.seriesId })
   res.json(created)
-})
+}
 
-const _delete = asyncExpress(async (req, res) => {
+const _delete = async (req: AuthReq, res: express.Response) => {
   const race = await Race.findOne({
     _id: mongoose.Types.ObjectId(req.body._id),
   })
@@ -60,9 +64,9 @@ const _delete = asyncExpress(async (req, res) => {
     raceId: mongoose.Types.ObjectId(req.body._id),
   }).exec()
   res.status(204).end()
-})
+}
 
-const getEntries = asyncExpress(async (req, res) => {
+const getEntries = async (req: express.Request, res: express.Response) => {
   const entries = await Entry.find({
     raceId: mongoose.Types.ObjectId(req.query._id),
   })
@@ -72,9 +76,9 @@ const getEntries = asyncExpress(async (req, res) => {
     .lean()
     .exec()
   res.json(entries)
-})
+}
 
-const getRaces = asyncExpress(async (req, res) => {
+const getRaces = async (req: OptionalAuthReq, res: express.Response) => {
   if (req.query.eventId) {
     const races = await Race.find({
       eventId: mongoose.Types.ObjectId(req.query.eventId),
@@ -92,14 +96,15 @@ const getRaces = asyncExpress(async (req, res) => {
       .exec()
     res.json(race)
   } else {
-    const promoterId = req.promoter._id
-    const series = await SeriesPromoter.find(
-      promoterId
-        ? {
-            promoterId: mongoose.Types.ObjectId(req.promoter._id),
-          }
-        : {}
-    ).exec()
+    if (!req.promoter) {
+      res
+        .status(401)
+        .json({ message: 'Must supply authentication to load own races' })
+      return
+    }
+    const series = await SeriesPromoter.find({
+      promoterId: req.promoter._id,
+    }).exec()
     const races = await Race.find({
       $or: series.map((seriesPromoter) => ({
         seriesId: seriesPromoter.seriesId,
@@ -112,9 +117,9 @@ const getRaces = asyncExpress(async (req, res) => {
     // Sort the races by event startDate descending
     res.json(races.sort((r1, r2) => r1.event.startDate < r2.event.startDate))
   }
-})
+}
 
-const createEntry = asyncExpress(async (req, res) => {
+const createEntry = async (req: AuthReq, res: express.Response) => {
   const race = await Race.findOne({
     _id: mongoose.Types.ObjectId(req.body.raceId),
   })
@@ -162,15 +167,14 @@ const createEntry = asyncExpress(async (req, res) => {
     seriesId: race.seriesId,
   })
   res.json(created)
-})
+}
 
-const removeEntry = asyncExpress(async (req, res) => {
+const removeEntry = async (req: AuthReq, res: express.Response) => {
   const race = await Race.findOne({
     _id: mongoose.Types.ObjectId(req.body.raceId),
   })
     .populate('event')
     .lean()
-    .exec()
   if (!(await isSeriesPromoter(race.seriesId, req.promoter._id))) {
     res.status(401).json({
       message: 'You are not authorized to remove entries.',
@@ -182,9 +186,9 @@ const removeEntry = asyncExpress(async (req, res) => {
     riderId: mongoose.Types.ObjectId(req.body.riderId),
   }).exec()
   res.status(204).end()
-})
+}
 
-const update = asyncExpress(async (req, res) => {
+const update = async (req: AuthReq, res: express.Response) => {
   if (!req.body._id) {
     res.status(400).json({
       message: 'No _id supplied',
@@ -211,4 +215,4 @@ const update = asyncExpress(async (req, res) => {
     req.body.changes
   )
   res.status(204).end()
-})
+}

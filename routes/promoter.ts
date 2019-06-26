@@ -1,21 +1,22 @@
 import mongoose from 'mongoose'
-import asyncExpress from 'async-express'
-import auth from '../middleware/auth'
+import express from 'express'
+import auth, { AuthReq } from '../middleware/auth'
 import emailValidator from 'email-validator'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
+const { ObjectId } = mongoose.Types
 const Promoter = mongoose.model('Promoter')
 
-export default (app: any) => {
+export default (app: express.Application) => {
   app.post('/promoters', create)
   app.post('/promoters/login', login)
   app.get('/promoters', auth, load)
   app.put('/promoters', auth, update)
 }
 
-const load = asyncExpress(async (req, res) => {
+const load = async (req: AuthReq, res: express.Response) => {
   const promoter = await Promoter.findOne({
-    _id: mongoose.Types.ObjectId(req.query._id || req.promoter._id),
+    _id: ObjectId(req.query._id || req.promoter._id),
   })
   if (!promoter) {
     res.status(404).json({
@@ -24,9 +25,9 @@ const load = asyncExpress(async (req, res) => {
     return
   }
   res.json(promoter)
-})
+}
 
-const create = asyncExpress(async (req, res) => {
+const create = async (req: express.Request, res: express.Response) => {
   if (!req.body.password || req.body.password.length < 6) {
     res.status(400).json({
       message: 'Please make sure your password is at least 6 characters.',
@@ -64,9 +65,9 @@ const create = asyncExpress(async (req, res) => {
     process.env.WEB_TOKEN_SECRET
   )
   res.json({ ..._doc, token })
-})
+}
 
-const update = asyncExpress(async (req, res) => {
+const update = async (req: AuthReq, res: express.Response) => {
   const promoter = await Promoter.findOne({
     _id: req.promoter._id,
   }).exec()
@@ -98,9 +99,9 @@ const update = asyncExpress(async (req, res) => {
     }
   )
   res.status(204).end()
-})
+}
 
-const login = asyncExpress(async (req, res) => {
+const login = async (req: express.Request, res: express.Response) => {
   const email = req.body.email.toLowerCase()
   const promoter = await Promoter.findOne({
     email,
@@ -128,4 +129,4 @@ const login = asyncExpress(async (req, res) => {
     process.env.WEB_TOKEN_SECRET
   )
   res.json({ ...promoter, token })
-})
+}

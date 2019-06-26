@@ -1,6 +1,5 @@
 import express from 'express'
 import mongoose from 'mongoose'
-import asyncExpress from 'async-express'
 const app = express()
 
 // Load models into memory
@@ -28,18 +27,18 @@ if (process.env.NODE_ENV === 'test') {
   process.env.WEB_TOKEN_SECRET = 'secret'
   process.env.DB_URI = 'mongodb://127.0.0.1:27017/test'
 }
-const mongoConnect = asyncExpress(async (_1, _2, next: any) => {
+const mongoConnect: express.RequestHandler = async (_1, _2, next: any) => {
   await mongoose.connect(process.env.DB_URI, {
     connectTimeoutMS: 5000,
     useNewUrlParser: true,
   })
   next()
-})
+}
 
-const mongoDisconnect = asyncExpress(async (_1, _2, next) => {
+const mongoDisconnect: express.RequestHandler = async (_1, _2, next) => {
   await mongoose.disconnect()
   next()
-})
+}
 
 /**
  * Establish a connection to the mongo database, then continue the request
