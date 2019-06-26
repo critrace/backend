@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import asyncExpress from 'async-express'
+import express from 'express'
 import moment from 'moment'
 import _ from 'lodash'
 import nanoid from 'nanoid'
@@ -8,16 +8,16 @@ import Rider, { _Rider } from '../models/rider'
 import Race from '../models/race'
 import Entry from '../models/entry'
 
-export default (app: any) => {
+export default (app: express.Application) => {
   app.get('/races/leaderboard', leaderboard)
 }
 
 /**
  * Calculate the latest results for a given race
  **/
-const leaderboard = asyncExpress(async (req, res) => {
+const leaderboard = async (req: express.Request, res: express.Response) => {
   res.json(await leaderboardByRaceId(req.query.raceId))
-})
+}
 
 /**
  * Retrieve an array of riderIds by raceId

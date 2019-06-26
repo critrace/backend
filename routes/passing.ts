@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import asyncExpress from 'async-express'
+import express from 'express'
 import auth from '../middleware/auth'
 import multer from 'multer'
 import csvParse from 'csv-parse'
@@ -14,7 +14,7 @@ const upload = multer({
   storage: multer.memoryStorage(),
 })
 
-export default (app: any) => {
+export default (app: express.Application) => {
   app.get('/passings', load)
   app.post('/passings', auth, create)
   app.delete('/passings', auth, _delete)
@@ -22,7 +22,7 @@ export default (app: any) => {
   app.post('/passings/associate', auth, associateTranspondersByEvent)
 }
 
-const importPassings = asyncExpress(async (req, res) => {
+const importPassings = async (req: express.Request, res: express.Response) => {
   const passingsCSV = req.file.buffer.toString('utf8')
   const data = await new Promise((rs, rj) => {
     csvParse(
@@ -89,9 +89,9 @@ const importPassings = asyncExpress(async (req, res) => {
     })
   }
   res.status(204).end()
-})
+}
 
-const create = asyncExpress(async (req, res) => {
+const create = async (req: express.Request, res: express.Response) => {
   const event = await Event.findOne({
     _id: mongoose.Types.ObjectId(req.body.eventId),
   })
@@ -136,9 +136,9 @@ const create = asyncExpress(async (req, res) => {
     ...req.body,
   })
   res.status(204).end()
-})
+}
 
-const load = asyncExpress(async (req, res) => {
+const load = async (req: express.Request, res: express.Response) => {
   const models = await Passing.find({
     eventId: mongoose.Types.ObjectId(req.query.eventId),
   })
@@ -147,9 +147,9 @@ const load = asyncExpress(async (req, res) => {
     .lean()
     .exec()
   res.json(models)
-})
+}
 
-const _delete = asyncExpress(async (req, res) => {
+const _delete = async (req: express.Request, res: express.Response) => {
   const passing = await Passing.findOne({
     _id: mongoose.Types.ObjectId(req.body._id),
   }).exec()
@@ -173,12 +173,12 @@ const _delete = asyncExpress(async (req, res) => {
     _id: mongoose.Types.ObjectId(req.body._id),
   }).exec()
   res.status(204).end()
-})
+}
 
 /**
  * Accepts transponder, eventId, riderId
  **/
-const associateTranspondersByEvent = asyncExpress(async (req, res) => {
+const associateTranspondersByEvent = async (req: express.Request, res: express.Response) => {
   const { transponder, eventId, riderId } = req.body
   if (!transponder) {
     return res.status(400).json({ message: 'Missing transponder parameter' })
@@ -230,4 +230,4 @@ const associateTranspondersByEvent = asyncExpress(async (req, res) => {
     }
   ).exec()
   res.status(204).end()
-})
+}

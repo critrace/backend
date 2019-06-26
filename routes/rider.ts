@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import asyncExpress from 'async-express'
+import express from 'express'
 import auth from '../middleware/auth'
 import _ from 'lodash'
 import multer from 'multer'
@@ -11,7 +11,7 @@ const upload = multer({
   storage: multer.memoryStorage(),
 })
 
-export default (app: any) => {
+export default (app: express.Application) => {
   app.get('/riders', getRiders)
   app.post('/riders', auth, create)
   app.get('/riders/search', search)
@@ -20,7 +20,7 @@ export default (app: any) => {
   app.post('/riders/import', auth, upload.single('csv'), importRiders)
 }
 
-const importRiders = asyncExpress(async (req, res) => {
+const importRiders = async (req: express.Request, res: express.Response) => {
   if (req.promoter._id.toString() !== '5c9b27726be36765d827bc4f') {
     res.status(401)
     res.json({ message: 'Not authorized to import rider data' })
@@ -85,9 +85,9 @@ const importRiders = asyncExpress(async (req, res) => {
     }
   }
   res.status(204).end()
-})
+}
 
-const byId = asyncExpress(async (req, res) => {
+const byId = async (req: express.Request, res: express.Response) => {
   if (req.body._ids && req.body._ids.length === 0) {
     res.json([])
     return
@@ -98,9 +98,9 @@ const byId = asyncExpress(async (req, res) => {
     })),
   })
   res.json(riders)
-})
+}
 
-const create = asyncExpress(async (req, res) => {
+const create = async (req: express.Request, res: express.Response) => {
   if (!req.body.license && !req.body.licenseExpirationDate) {
     // It's a one day, set the license expiration 1 day forward
     const licenseExpirationDate = new Date()
@@ -115,9 +115,9 @@ const create = asyncExpress(async (req, res) => {
     })
   const created = await Rider.create(req.body)
   res.json(created)
-})
+}
 
-const getRiders = asyncExpress(async (req, res) => {
+const getRiders = async (req: express.Request, res: express.Response) => {
   const query = {}
   if (req.query.license) {
     query.license = req.query.license
@@ -140,9 +140,9 @@ const getRiders = asyncExpress(async (req, res) => {
     return
   }
   res.json(model)
-})
+}
 
-const search = asyncExpress(async (req, res) => {
+const search = async (req: express.Request, res: express.Response) => {
   const searchString = req.query.search || ''
   if (!searchString.length) {
     res.json([])
@@ -178,9 +178,9 @@ const search = asyncExpress(async (req, res) => {
     .lean()
     .exec()
   res.json(riders)
-})
+}
 
-const update = asyncExpress(async (req, res) => {
+const update = async (req: express.Request, res: express.Response) => {
   if (!req.body.where) {
     res.status(400).json({
       message: 'No where clause supplied',
@@ -189,4 +189,4 @@ const update = asyncExpress(async (req, res) => {
   }
   await Rider.updateOne(req.body.where, req.body.changes).exec()
   res.status(204).end()
-})
+}

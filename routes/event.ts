@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import asyncExpress from 'async-express'
+import express from 'express'
 import auth, { authNotRequired } from '../middleware/auth'
 import { isSeriesPromoter } from './series'
 import _ from 'lodash'
@@ -13,7 +13,7 @@ const SeriesPromoter = mongoose.model('SeriesPromoter')
 const Bib = mongoose.model('Bib')
 const Rider = mongoose.model('Rider')
 
-export default (app: any) => {
+export default (app: express.Application) => {
   app.get('/events', authNotRequired, getEvent)
   app.get('/events/home', homeEvents)
   app.post('/events', auth, create)
@@ -25,7 +25,7 @@ export default (app: any) => {
 /**
  * Result csv download route
  **/
-const generateCSV = asyncExpress(async (req, res) => {
+const generateCSV = async (req: express.Request, res: express.Response) => {
   const _event = await Event.findOne({
     _id: mongoose.Types.ObjectId(req.query.eventId),
   })
@@ -159,12 +159,12 @@ const generateCSV = asyncExpress(async (req, res) => {
     `attachment; filename="${req.query.eventId}.csv"`
   )
   res.send(csvData)
-})
+}
 
 /**
  * Create event route
  **/
-const create = asyncExpress(async (req, res) => {
+const create = async (req: express.Request, res: express.Response) => {
   if (!(await isSeriesPromoter(req.body.seriesId, req.promoter._id))) {
     res.status(401).json({
       message: 'You must be a series promoter to create an event',
@@ -176,9 +176,9 @@ const create = asyncExpress(async (req, res) => {
     ...req.body,
   })
   res.json(created)
-})
+}
 
-const getEvent = asyncExpress(async (req, res) => {
+const getEvent = async (req: express.Request, res: express.Response) => {
   if (req.query._id) {
     const event = await Event.findOne({
       _id: mongoose.Types.ObjectId(req.query._id),
@@ -218,9 +218,9 @@ const getEvent = asyncExpress(async (req, res) => {
     .lean()
     .exec()
   res.json(events)
-})
+}
 
-const homeEvents = asyncExpress(async (req, res) => {
+const homeEvents = async (req: express.Request, res: express.Response) => {
   const events = await Event.find({
     seriesId: {
       $ne: mongoose.Types.ObjectId('5c9f78c12d17216b9edfbb9f'),
@@ -234,9 +234,9 @@ const homeEvents = asyncExpress(async (req, res) => {
     .lean()
     .exec()
   res.json(events)
-})
+}
 
-const deleteEvent = asyncExpress(async (req, res) => {
+const deleteEvent = async (req: express.Request, res: express.Response) => {
   const event = await Event.findOne({
     _id: mongoose.Types.ObjectId(req.body._id),
   })
@@ -263,9 +263,9 @@ const deleteEvent = asyncExpress(async (req, res) => {
     ...races.map(({ _id }) => Entry.deleteMany({ raceId: _id }).exec()),
   ])
   res.status(204).end()
-})
+}
 
-const getEntries = asyncExpress(async (req, res) => {
+const getEntries = async (req: express.Request, res: express.Response) => {
   const entries = await Entry.find({
     eventId: mongoose.Types.ObjectId(req.query._id),
   })
@@ -275,4 +275,4 @@ const getEntries = asyncExpress(async (req, res) => {
     .lean()
     .exec()
   res.json(entries)
-})
+}

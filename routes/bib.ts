@@ -1,20 +1,20 @@
-import asyncExpress from 'async-express'
 import auth from '../middleware/auth'
 import { isSeriesPromoter } from './series'
+import express from 'express'
 import mongoose from 'mongoose'
 const Bib = mongoose.model('Bib')
 const Entry = mongoose.model('Entry')
 const SeriesPromoter = mongoose.model('SeriesPromoter')
 const Race = mongoose.model('Race')
 
-export default (app: any) => {
+export default (app: express.Application) => {
   app.get('/bibs', getBibs)
   app.post('/bibs', auth, create)
   app.delete('/bibs', auth, deleteBib)
   app.put('/bibs', auth, update)
 }
 
-const create = asyncExpress(async (req, res) => {
+const create = async (req: express.Request, res: express.Response) => {
   const existingBib = await Bib.findOne({
     seriesId: mongoose.Types.ObjectId(req.body.seriesId),
     riderId: mongoose.Types.ObjectId(req.body.riderId),
@@ -48,9 +48,9 @@ const create = asyncExpress(async (req, res) => {
   }
   const created = await Bib.create(req.body)
   res.json(created)
-})
+}
 
-const getBibs = asyncExpress(async (req, res) => {
+const getBibs = async (req: express.Request, res: express.Response) => {
   if (req.query.seriesId) {
     const bibs = await Bib.find({
       seriesId: mongoose.Types.ObjectId(req.query.seriesId),
@@ -90,9 +90,9 @@ const getBibs = asyncExpress(async (req, res) => {
     return
   }
   res.status(204).end()
-})
+}
 
-const deleteBib = asyncExpress(async (req, res) => {
+const deleteBib = async (req: express.Request, res: express.Response) => {
   const bib = await Bib.findOne({
     _id: mongoose.Types.ObjectId(req.body._id),
   })
@@ -117,9 +117,9 @@ const deleteBib = asyncExpress(async (req, res) => {
     bibId: mongoose.Types.ObjectId(req.body._id),
   }).exec()
   res.status(204).end()
-})
+}
 
-const update = asyncExpress(async (req, res) => {
+const update = async (req: express.Request, res: express.Response) => {
   if (!req.body.where) {
     res.status(400).json({
       message: 'No where clause supplied',
@@ -164,4 +164,4 @@ const update = asyncExpress(async (req, res) => {
   }
   await Bib.updateOne(req.body.where, req.body.changes).exec()
   res.status(204).end()
-})
+}
