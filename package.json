@@ -44,7 +44,6 @@
   },
   "homepage": "https://github.com/critrace/backend#readme",
   "dependencies": {
-    "async-express": "^0.1.6",
     "axios": "^0.19.0",
     "bcrypt": "^3.0.5",
     "csv-parse": "^4.4.3",
