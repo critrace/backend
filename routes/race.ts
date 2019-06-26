@@ -1,6 +1,10 @@
 import mongoose from 'mongoose'
 import express from 'express'
-import auth, { authNotRequired, AuthReq } from '../middleware/auth'
+import auth, {
+  authNotRequired,
+  AuthReq,
+  OptionalAuthReq,
+} from '../middleware/auth'
 import { isSeriesPromoter } from './series'
 const Race = mongoose.model('Race')
 const Event = mongoose.model('Event')
@@ -74,7 +78,7 @@ const getEntries = async (req: express.Request, res: express.Response) => {
   res.json(entries)
 }
 
-const getRaces = async (req: AuthReq, res: express.Response) => {
+const getRaces = async (req: OptionalAuthReq, res: express.Response) => {
   if (req.query.eventId) {
     const races = await Race.find({
       eventId: mongoose.Types.ObjectId(req.query.eventId),
@@ -92,14 +96,15 @@ const getRaces = async (req: AuthReq, res: express.Response) => {
       .exec()
     res.json(race)
   } else {
-    const promoterId = req.promoter._id
-    const series = await SeriesPromoter.find(
-      promoterId
-        ? {
-            promoterId: req.promoter._id,
-          }
-        : {}
-    ).exec()
+    if (!req.promoter) {
+      res
+        .status(401)
+        .json({ message: 'Must supply authentication to load own races' })
+      return
+    }
+    const series = await SeriesPromoter.find({
+      promoterId: req.promoter._id,
+    }).exec()
     const races = await Race.find({
       $or: series.map((seriesPromoter) => ({
         seriesId: seriesPromoter.seriesId,

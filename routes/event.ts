@@ -182,7 +182,7 @@ const create = async (req: AuthReq, res: express.Response) => {
   res.json(created)
 }
 
-const getEvent = async (req: express.Request, res: express.Response) => {
+const getEvent = async (req: OptionalAuthReq, res: express.Response) => {
   if (req.query._id) {
     const event = await Event.findOne({
       _id: mongoose.Types.ObjectId(req.query._id),
@@ -203,7 +203,7 @@ const getEvent = async (req: express.Request, res: express.Response) => {
     res.json(events)
     return
   }
-  if (!req.promoter._id) {
+  if (!req.promoter) {
     res.status(401).json({
       message: 'Authenticate to retrieve owned events',
     })

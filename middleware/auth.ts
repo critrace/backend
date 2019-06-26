@@ -9,13 +9,12 @@ export type AuthReq = express.Request & {
 }
 
 export type OptionalAuthReq = express.Request & {
-  promoter?:
-    | {
-        _id: mongoose.Types.ObjectId
-      }
-    | {}
+  promoter?: {
+    _id: mongoose.Types.ObjectId
+  }
 }
 
+// Auth required
 export default (
   req: AuthReq,
   res: express.Response,
@@ -28,6 +27,9 @@ export default (
       res.send('No authentication token supplied in body or query.')
       res.end()
       return
+    }
+    if (!req.promoter._id) {
+      throw new Error('No _id present on decoded promoter')
     }
     next()
   } catch (err) {
@@ -45,7 +47,6 @@ export const authNotRequired = (
     loadPromoter(req)
     next()
   } catch (err) {
-    req.promoter = {}
     next()
   }
 }
