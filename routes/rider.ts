@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import express from 'express'
-import auth from '../middleware/auth'
+import auth, { AuthReq } from '../middleware/auth'
 import _ from 'lodash'
 import multer from 'multer'
 import moment from 'moment'
@@ -20,7 +20,7 @@ export default (app: express.Application) => {
   app.post('/riders/import', auth, upload.single('csv'), importRiders)
 }
 
-const importRiders = async (req: express.Request, res: express.Response) => {
+const importRiders = async (req: AuthReq, res: express.Response) => {
   if (req.promoter._id.toString() !== '5c9b27726be36765d827bc4f') {
     res.status(401)
     res.json({ message: 'Not authorized to import rider data' })
@@ -100,7 +100,7 @@ const byId = async (req: express.Request, res: express.Response) => {
   res.json(riders)
 }
 
-const create = async (req: express.Request, res: express.Response) => {
+const create = async (req: AuthReq, res: express.Response) => {
   if (!req.body.license && !req.body.licenseExpirationDate) {
     // It's a one day, set the license expiration 1 day forward
     const licenseExpirationDate = new Date()
@@ -180,7 +180,7 @@ const search = async (req: express.Request, res: express.Response) => {
   res.json(riders)
 }
 
-const update = async (req: express.Request, res: express.Response) => {
+const update = async (req: AuthReq, res: express.Response) => {
   if (!req.body.where) {
     res.status(400).json({
       message: 'No where clause supplied',

@@ -1,9 +1,10 @@
 import mongoose from 'mongoose'
 import express from 'express'
-import auth from '../middleware/auth'
+import auth, { AuthReq } from '../middleware/auth'
 import emailValidator from 'email-validator'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
+const { ObjectId } = mongoose.Types
 const Promoter = mongoose.model('Promoter')
 
 export default (app: express.Application) => {
@@ -13,9 +14,9 @@ export default (app: express.Application) => {
   app.put('/promoters', auth, update)
 }
 
-const load = async (req: express.Request, res: express.Response) => {
+const load = async (req: AuthReq, res: express.Response) => {
   const promoter = await Promoter.findOne({
-    _id: mongoose.Types.ObjectId(req.query._id || req.promoter._id),
+    _id: ObjectId(req.query._id || req.promoter._id),
   })
   if (!promoter) {
     res.status(404).json({
@@ -66,7 +67,7 @@ const create = async (req: express.Request, res: express.Response) => {
   res.json({ ..._doc, token })
 }
 
-const update = async (req: express.Request, res: express.Response) => {
+const update = async (req: AuthReq, res: express.Response) => {
   const promoter = await Promoter.findOne({
     _id: req.promoter._id,
   }).exec()

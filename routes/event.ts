@@ -1,6 +1,10 @@
 import mongoose from 'mongoose'
 import express from 'express'
-import auth, { authNotRequired } from '../middleware/auth'
+import auth, {
+  authNotRequired,
+  AuthReq,
+  OptionalAuthReq,
+} from '../middleware/auth'
 import { isSeriesPromoter } from './series'
 import _ from 'lodash'
 import csvStringify from 'csv-stringify'
@@ -25,7 +29,7 @@ export default (app: express.Application) => {
 /**
  * Result csv download route
  **/
-const generateCSV = async (req: express.Request, res: express.Response) => {
+const generateCSV = async (req: AuthReq, res: express.Response) => {
   const _event = await Event.findOne({
     _id: mongoose.Types.ObjectId(req.query.eventId),
   })
@@ -164,7 +168,7 @@ const generateCSV = async (req: express.Request, res: express.Response) => {
 /**
  * Create event route
  **/
-const create = async (req: express.Request, res: express.Response) => {
+const create = async (req: AuthReq, res: express.Response) => {
   if (!(await isSeriesPromoter(req.body.seriesId, req.promoter._id))) {
     res.status(401).json({
       message: 'You must be a series promoter to create an event',
@@ -236,7 +240,7 @@ const homeEvents = async (req: express.Request, res: express.Response) => {
   res.json(events)
 }
 
-const deleteEvent = async (req: express.Request, res: express.Response) => {
+const deleteEvent = async (req: AuthReq, res: express.Response) => {
   const event = await Event.findOne({
     _id: mongoose.Types.ObjectId(req.body._id),
   })

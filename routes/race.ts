@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import express from 'express'
-import auth, { authNotRequired } from '../middleware/auth'
+import auth, { authNotRequired, AuthReq } from '../middleware/auth'
 import { isSeriesPromoter } from './series'
 const Race = mongoose.model('Race')
 const Event = mongoose.model('Event')
@@ -18,7 +18,7 @@ export default (app: express.Application) => {
   app.put('/races', auth, update)
 }
 
-const create = async (req: express.Request, res: express.Response) => {
+const create = async (req: AuthReq, res: express.Response) => {
   const event = await Event.findOne({
     _id: mongoose.Types.ObjectId(req.body.eventId),
   })
@@ -34,7 +34,7 @@ const create = async (req: express.Request, res: express.Response) => {
   res.json(created)
 }
 
-const _delete = async (req: express.Request, res: express.Response) => {
+const _delete = async (req: AuthReq, res: express.Response) => {
   const race = await Race.findOne({
     _id: mongoose.Types.ObjectId(req.body._id),
   })
@@ -74,7 +74,7 @@ const getEntries = async (req: express.Request, res: express.Response) => {
   res.json(entries)
 }
 
-const getRaces = async (req: express.Request, res: express.Response) => {
+const getRaces = async (req: AuthReq, res: express.Response) => {
   if (req.query.eventId) {
     const races = await Race.find({
       eventId: mongoose.Types.ObjectId(req.query.eventId),
@@ -96,7 +96,7 @@ const getRaces = async (req: express.Request, res: express.Response) => {
     const series = await SeriesPromoter.find(
       promoterId
         ? {
-            promoterId: mongoose.Types.ObjectId(req.promoter._id),
+            promoterId: req.promoter._id,
           }
         : {}
     ).exec()
@@ -114,7 +114,7 @@ const getRaces = async (req: express.Request, res: express.Response) => {
   }
 }
 
-const createEntry = async (req: express.Request, res: express.Response) => {
+const createEntry = async (req: AuthReq, res: express.Response) => {
   const race = await Race.findOne({
     _id: mongoose.Types.ObjectId(req.body.raceId),
   })
@@ -164,13 +164,12 @@ const createEntry = async (req: express.Request, res: express.Response) => {
   res.json(created)
 }
 
-const removeEntry = async (req: express.Request, res: express.Response) => {
+const removeEntry = async (req: AuthReq, res: express.Response) => {
   const race = await Race.findOne({
     _id: mongoose.Types.ObjectId(req.body.raceId),
   })
     .populate('event')
     .lean()
-    .exec()
   if (!(await isSeriesPromoter(race.seriesId, req.promoter._id))) {
     res.status(401).json({
       message: 'You are not authorized to remove entries.',
@@ -184,7 +183,7 @@ const removeEntry = async (req: express.Request, res: express.Response) => {
   res.status(204).end()
 }
 
-const update = async (req: express.Request, res: express.Response) => {
+const update = async (req: AuthReq, res: express.Response) => {
   if (!req.body._id) {
     res.status(400).json({
       message: 'No _id supplied',

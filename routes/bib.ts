@@ -1,7 +1,8 @@
-import auth from '../middleware/auth'
+import auth, { AuthReq } from '../middleware/auth'
 import { isSeriesPromoter } from './series'
 import express from 'express'
 import mongoose from 'mongoose'
+const { ObjectId } = mongoose.Types
 const Bib = mongoose.model('Bib')
 const Entry = mongoose.model('Entry')
 const SeriesPromoter = mongoose.model('SeriesPromoter')
@@ -14,10 +15,10 @@ export default (app: express.Application) => {
   app.put('/bibs', auth, update)
 }
 
-const create = async (req: express.Request, res: express.Response) => {
+const create = async (req: AuthReq, res: express.Response) => {
   const existingBib = await Bib.findOne({
-    seriesId: mongoose.Types.ObjectId(req.body.seriesId),
-    riderId: mongoose.Types.ObjectId(req.body.riderId),
+    seriesId: ObjectId(req.body.seriesId),
+    riderId: ObjectId(req.body.riderId),
   })
     .lean()
     .exec()
@@ -35,7 +36,7 @@ const create = async (req: express.Request, res: express.Response) => {
   }
 
   const existingNumber = await Bib.findOne({
-    seriesId: mongoose.Types.ObjectId(req.body.seriesId),
+    seriesId: ObjectId(req.body.seriesId),
     bibNumber: req.body.bibNumber,
   })
     .lean()
@@ -50,10 +51,10 @@ const create = async (req: express.Request, res: express.Response) => {
   res.json(created)
 }
 
-const getBibs = async (req: express.Request, res: express.Response) => {
+const getBibs = async (req: AuthReq, res: express.Response) => {
   if (req.query.seriesId) {
     const bibs = await Bib.find({
-      seriesId: mongoose.Types.ObjectId(req.query.seriesId),
+      seriesId: ObjectId(req.query.seriesId),
     })
       .populate('rider')
       .populate('series')
@@ -63,7 +64,7 @@ const getBibs = async (req: express.Request, res: express.Response) => {
     return
   } else if (req.query.raceId) {
     const race = await Race.findOne({
-      _id: mongoose.Types.ObjectId(req.query.raceId),
+      _id: ObjectId(req.query.raceId),
     }).exec()
     if (!race) {
       res.status(400).json({
@@ -72,7 +73,7 @@ const getBibs = async (req: express.Request, res: express.Response) => {
       return
     }
     const bibs = await Bib.find({
-      seriesId: mongoose.Types.ObjectId(race.seriesId),
+      seriesId: ObjectId(race.seriesId),
     })
       .lean()
       .exec()
@@ -80,7 +81,7 @@ const getBibs = async (req: express.Request, res: express.Response) => {
     return
   } else if (req.query._id) {
     const bib = await Bib.findOne({
-      _id: mongoose.Types.ObjectId(req.query._id),
+      _id: ObjectId(req.query._id),
     })
       .populate('rider')
       .populate('series')
@@ -92,9 +93,9 @@ const getBibs = async (req: express.Request, res: express.Response) => {
   res.status(204).end()
 }
 
-const deleteBib = async (req: express.Request, res: express.Response) => {
+const deleteBib = async (req: AuthReq, res: express.Response) => {
   const bib = await Bib.findOne({
-    _id: mongoose.Types.ObjectId(req.body._id),
+    _id: ObjectId(req.body._id),
   })
     .lean()
     .exec()
@@ -111,15 +112,15 @@ const deleteBib = async (req: express.Request, res: express.Response) => {
     return
   }
   await Bib.deleteOne({
-    _id: mongoose.Types.ObjectId(req.body._id),
+    _id: ObjectId(req.body._id),
   }).exec()
   await Entry.deleteMany({
-    bibId: mongoose.Types.ObjectId(req.body._id),
+    bibId: ObjectId(req.body._id),
   }).exec()
   res.status(204).end()
 }
 
-const update = async (req: express.Request, res: express.Response) => {
+const update = async (req: AuthReq, res: express.Response) => {
   if (!req.body.where) {
     res.status(400).json({
       message: 'No where clause supplied',
@@ -141,7 +142,7 @@ const update = async (req: express.Request, res: express.Response) => {
   ) {
     const existingBib = await Bib.findOne({
       bibNumber: req.body.changes.bibNumber,
-      seriesId: mongoose.Types.ObjectId(bib.seriesId),
+      seriesId: ObjectId(bib.seriesId),
     }).exec()
     if (existingBib) {
       res.status(400).json({
@@ -151,8 +152,8 @@ const update = async (req: express.Request, res: express.Response) => {
     }
   }
   const seriesPromoter = await SeriesPromoter.findOne({
-    seriesId: mongoose.Types.ObjectId(bib.seriesId),
-    promoterId: mongoose.Types.ObjectId(req.promoter._id),
+    seriesId: ObjectId(bib.seriesId),
+    promoterId: req.promoter._id,
   })
     .lean()
     .exec()

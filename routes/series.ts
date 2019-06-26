@@ -16,10 +16,14 @@ export default (app: express.Application) => {
   app.get('/series/race/latest', latestRaceRedirect)
 }
 
-export async function isSeriesPromoter(seriesId: string, promoterId: string) {
+export async function isSeriesPromoter(
+  seriesId: string | mongoose.Types.ObjectId,
+  promoterId?: string | mongoose.Types.ObjectId
+) {
+  if (!promoterId) return false
   const model = await SeriesPromoter.findOne({
-    promoterId: mongoose.Types.ObjectId(promoterId),
-    seriesId: mongoose.Types.ObjectId(seriesId),
+    promoterId: mongoose.Types.ObjectId(promoterId.toString()),
+    seriesId: mongoose.Types.ObjectId(seriesId.toString()),
   })
   return !!model
 }

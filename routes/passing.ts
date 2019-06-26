@@ -1,11 +1,12 @@
 import mongoose from 'mongoose'
 import express from 'express'
-import auth from '../middleware/auth'
+import auth, { AuthReq } from '../middleware/auth'
 import multer from 'multer'
 import csvParse from 'csv-parse'
 import moment from 'moment'
 import _ from 'lodash'
 import { isSeriesPromoter } from './series'
+const { ObjectId } = mongoose.Types
 const Passing = mongoose.model('Passing')
 const Event = mongoose.model('Event')
 const Rider = mongoose.model('Rider')
@@ -22,12 +23,13 @@ export default (app: express.Application) => {
   app.post('/passings/associate', auth, associateTranspondersByEvent)
 }
 
-const importPassings = async (req: express.Request, res: express.Response) => {
+const importPassings = async (req: AuthReq, res: express.Response) => {
   const passingsCSV = req.file.buffer.toString('utf8')
   const data = await new Promise((rs, rj) => {
     csvParse(
       passingsCSV,
       {
+        // eslint-disable-next-line camelcase
         skip_empty_lines: true,
         delimiter: ';',
       },
@@ -38,7 +40,7 @@ const importPassings = async (req: express.Request, res: express.Response) => {
     )
   })
   const event = await Event.findOne({
-    _id: mongoose.Types.ObjectId(req.body.eventId),
+    _id: ObjectId(req.body.eventId),
   }).exec()
   if (!(await isSeriesPromoter(event.seriesId, req.promoter._id))) {
     res.status(401)
@@ -54,7 +56,7 @@ const importPassings = async (req: express.Request, res: express.Response) => {
     eventId: req.body.eventId,
   }))
   const loadedPassings = await Passing.find({
-    eventId: mongoose.Types.ObjectId(req.body.eventId),
+    eventId: ObjectId(req.body.eventId),
     transponder: {
       $in: _.map(passings, 'transponder'),
     },
@@ -91,9 +93,9 @@ const importPassings = async (req: express.Request, res: express.Response) => {
   res.status(204).end()
 }
 
-const create = async (req: express.Request, res: express.Response) => {
+const create = async (req: AuthReq, res: express.Response) => {
   const event = await Event.findOne({
-    _id: mongoose.Types.ObjectId(req.body.eventId),
+    _id: ObjectId(req.body.eventId),
   })
     .lean()
     .exec()
@@ -104,8 +106,8 @@ const create = async (req: express.Request, res: express.Response) => {
     return
   }
   const seriesPromoter = await SeriesPromoter.findOne({
-    seriesId: mongoose.Types.ObjectId(event.seriesId),
-    promoterId: mongoose.Types.ObjectId(req.promoter._id),
+    seriesId: ObjectId(event.seriesId),
+    promoterId: ObjectId(req.promoter._id),
   })
     .lean()
     .exec()
@@ -116,7 +118,7 @@ const create = async (req: express.Request, res: express.Response) => {
     return
   }
   const existingPassing = await Passing.findOne({
-    eventId: mongoose.Types.ObjectId(req.body.eventId),
+    eventId: ObjectId(req.body.eventId),
     date: req.body.date,
     transponder: req.body.transponder,
   }).exec()
@@ -140,7 +142,7 @@ const create = async (req: express.Request, res: express.Response) => {
 
 const load = async (req: express.Request, res: express.Response) => {
   const models = await Passing.find({
-    eventId: mongoose.Types.ObjectId(req.query.eventId),
+    eventId: ObjectId(req.query.eventId),
   })
     .limit(250)
     .populate('rider')
@@ -149,9 +151,9 @@ const load = async (req: express.Request, res: express.Response) => {
   res.json(models)
 }
 
-const _delete = async (req: express.Request, res: express.Response) => {
+const _delete = async (req: AuthReq, res: express.Response) => {
   const passing = await Passing.findOne({
-    _id: mongoose.Types.ObjectId(req.body._id),
+    _id: ObjectId(req.body._id),
   }).exec()
   if (!passing) {
     res.status(404).json({
@@ -170,7 +172,7 @@ const _delete = async (req: express.Request, res: express.Response) => {
     return
   }
   await Passing.deleteOne({
-    _id: mongoose.Types.ObjectId(req.body._id),
+    _id: ObjectId(req.body._id),
   }).exec()
   res.status(204).end()
 }
@@ -178,7 +180,10 @@ const _delete = async (req: express.Request, res: express.Response) => {
 /**
  * Accepts transponder, eventId, riderId
  **/
-const associateTranspondersByEvent = async (req: express.Request, res: express.Response) => {
+const associateTranspondersByEvent = async (
+  req: AuthReq,
+  res: express.Response
+) => {
   const { transponder, eventId, riderId } = req.body
   if (!transponder) {
     return res.status(400).json({ message: 'Missing transponder parameter' })
@@ -188,10 +193,10 @@ const associateTranspondersByEvent = async (req: express.Request, res: express.R
     return res.status(400).json({ message: 'Missing riderId to parameter' })
   }
   const event = await Event.findOne({
-    _id: mongoose.Types.ObjectId(eventId),
+    _id: ObjectId(eventId),
   }).exec()
   const rider = await Rider.findOne({
-    _id: mongoose.Types.ObjectId(riderId),
+    _id: ObjectId(riderId),
   }).exec()
   if (!event) {
     return res
@@ -208,7 +213,7 @@ const associateTranspondersByEvent = async (req: express.Request, res: express.R
     return
   }
   const existing = (await Passing.find({
-    eventId: mongoose.Types.ObjectId(eventId),
+    eventId: ObjectId(eventId),
     transponder,
     riderId: {
       $exists: true,
@@ -222,7 +227,7 @@ const associateTranspondersByEvent = async (req: express.Request, res: express.R
   }
   await Passing.updateMany(
     {
-      eventId: mongoose.Types.ObjectId(eventId),
+      eventId: ObjectId(eventId),
       transponder,
     },
     {
