@@ -73,7 +73,7 @@
     "@types/node": "^12.0.7",
     "@types/randomstring": "^1.1.6",
     "ava": "^1.4.1",
-    "aws-sdk": "^2.471.0",
+    "aws-sdk": "^2.814.0",
     "babel-loader": "^8.0.6",
     "coveralls": "^3.0.3",
     "dotenv": "^7.0.0",
